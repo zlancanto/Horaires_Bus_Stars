@@ -2,7 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-}
+    id("com.google.devtools.ksp")}
 
 android {
     namespace = "com.example.horairebusmihanbot"
@@ -61,4 +61,5 @@ dependencies {
     implementation("androidx.room:room-runtime:$room_version")
     implementation("androidx.room:room-ktx:$room_version")
     testImplementation("androidx.room:room-testing:$room_version")
+    ksp("androidx.room:room-compiler:$room_version")
 }

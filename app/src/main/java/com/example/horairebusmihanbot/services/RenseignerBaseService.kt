@@ -19,7 +19,7 @@ class RenseignerBaseService(
     private val tripRepo: TripRepository,
     private val stopTimeRepo: StopTimeRepository
 ) {
-
+    // Fichier TXT contenant les données. Ils se trouvent dans res/raw/
     private val rawFiles: Map<String, Int> = mapOf(
         "routes.txt" to R.raw.routes,
         "calendar.txt" to R.raw.calendar,
@@ -31,11 +31,12 @@ class RenseignerBaseService(
     private var totalLinesToProcess = 0
     private var currentLinesProcessed = 0
 
+    // Fonction qui gère l'import des données.
     suspend fun startImport(onProgress: (Float) -> Unit) = withContext(Dispatchers.IO) {
         val start = System.currentTimeMillis()
         Log.i("IMPORT", "Début de l'importation...")
 
-        onProgress(0f)
+        onProgress(0f) // Utile pour la barre de progression
         totalLinesToProcess = countTotalLines()
         currentLinesProcessed = 0
 
@@ -44,7 +45,7 @@ class RenseignerBaseService(
             onProgress(1f)
             return@withContext
         }
-
+        // Import des données
         importRoutes(onProgress)
         importCalendar(onProgress)
         importStops(onProgress)
@@ -56,6 +57,7 @@ class RenseignerBaseService(
         Log.i("IMPORT", "Import terminé en $duration secondes.")
     }
 
+    // Fonction pour récupérer le chemin du fichier passé en paramètre.
     private fun getResourceStream(fileName: String): InputStream? {
         val rawId = rawFiles[fileName]
         if (rawId == null) {
@@ -64,7 +66,9 @@ class RenseignerBaseService(
         }
         return context.resources.openRawResource(rawId)
     }
-
+    // Fonction pour compter le nombre de lignes à traiter.
+    // Utilise pour la barre de progression.
+    // Et le pourcentage.
     private fun countTotalLines(): Int {
         var count = 0
 
@@ -96,8 +100,9 @@ class RenseignerBaseService(
                     lines.drop(1)
                         .map { it.split(",") }
                         .mapNotNull { c ->
-                            try { mapper(c) }
-                            catch (e: Exception) {
+                            try {
+                                mapper(c)
+                            } catch (e: Exception) {
                                 Log.w("IMPORT", "Erreur mapping $fileName : ${e.message}")
                                 null
                             }
@@ -116,7 +121,8 @@ class RenseignerBaseService(
     }
 
     private suspend fun importRoutes(onProgress: (Float) -> Unit) {
-        parseFile("routes.txt",
+        parseFile(
+            "routes.txt",
             mapper = { c ->
                 BusRoute(
                     id = c[0],
@@ -134,7 +140,8 @@ class RenseignerBaseService(
     }
 
     private suspend fun importCalendar(onProgress: (Float) -> Unit) {
-        parseFile("calendar.txt",
+        parseFile(
+            "calendar.txt",
             mapper = { c ->
                 Calendar(
                     serviceId = c[0],
@@ -155,7 +162,8 @@ class RenseignerBaseService(
     }
 
     private suspend fun importStops(onProgress: (Float) -> Unit) {
-        parseFile("stops.txt",
+        parseFile(
+            "stops.txt",
             mapper = { c ->
                 Stop(
                     id = c[0],
@@ -172,7 +180,8 @@ class RenseignerBaseService(
     }
 
     private suspend fun importTrips(onProgress: (Float) -> Unit) {
-        parseFile("trips.txt",
+        parseFile(
+            "trips.txt",
             mapper = { c ->
                 Trip(
                     routeId = c[0],
@@ -190,7 +199,8 @@ class RenseignerBaseService(
     }
 
     private suspend fun importStopTimes(onProgress: (Float) -> Unit) {
-        parseFile("stop_times.txt",
+        parseFile(
+            "stop_times.txt",
             mapper = { c ->
                 StopTime(
                     tripId = c[0],
@@ -207,4 +217,20 @@ class RenseignerBaseService(
 
     private fun List<String>.getOrNull(index: Int): String? =
         if (index < size) this[index] else null
+
+
+    suspend fun clearDatabase() = withContext(Dispatchers.IO) {
+        try {
+            routeRepo.deleteAll()
+            calendarRepo.deleteAll()
+            stopRepo.deleteAll()
+            tripRepo.deleteAll()
+            stopTimeRepo.deleteAll()
+
+            Log.i("DB", "Base de données vidée avec succès")
+        } catch (e: Exception) {
+            Log.e("DB", "Erreur lors du vidage de la BDD : ${e.message}")
+        }
+    }
+
 }

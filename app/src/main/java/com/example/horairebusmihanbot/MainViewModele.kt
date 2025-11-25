@@ -11,10 +11,13 @@ import androidx.lifecycle.viewModelScope
 import com.example.horairebusmihanbot.data.*
 import com.example.horairebusmihanbot.data.repository.*
 import com.example.horairebusmihanbot.services.RenseignerBaseService
+import com.example.horairebusmihanbot.services.TelechargerFichiersService
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainViewModele(application: Application) : AndroidViewModel(application) {
 
@@ -59,7 +62,6 @@ class MainViewModele(application: Application) : AndroidViewModel(application) {
             } finally {
                 _isImporting.value = false
                 _databaseCleared.value = false
-                sendNotification(context)
             }
 
         }
@@ -84,36 +86,11 @@ class MainViewModele(application: Application) : AndroidViewModel(application) {
         _isImporting.value = false
     }
 
-    // Fonction qui envoie la notification en fin d'import.
-    // Peut-être passer le texte en param pour refacto un peu lors de l'appel de la fonction pour le download.
-    private fun sendNotification(context: Context) {
-        // Vérification des permissions
-        val hasPermission = ActivityCompat.checkSelfPermission(
-            context,
-            android.Manifest.permission.POST_NOTIFICATIONS // on a la perm
-        ) == PackageManager.PERMISSION_GRANTED
-
-        if (!hasPermission) {
-            android.util.Log.e("MainViewModele", "Pas de permission de notif")
-            return
-        }
-        val nm = NotificationManagerCompat.from(context)
-        val channel = nm.getNotificationChannel("IMPORT_CHANNEL")
-
-        android.util.Log.d("MainViewModele", "Le channel existe = ${channel != null}")
-
-        val builder = NotificationCompat.Builder(context, "IMPORT_CHANNEL")
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle("Importation terminée")
-            .setContentText("Données copiées dans la BDD.")
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-
-        try {
-            nm.notify(1, builder.build())
-            android.util.Log.d("MainViewModele", "Notification envoyée !")
-        } catch (e: Exception) {
-            android.util.Log.e("MainViewModele", "Erreur lors de l'envoi de la notification", e)
+    fun telechargerFichiersval() {
+        var service = TelechargerFichiersService( getApplication<Application>().applicationContext)
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                service.telechargerEtExtraire()            }
         }
     }
-
 }

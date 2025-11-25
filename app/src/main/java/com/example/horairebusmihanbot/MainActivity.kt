@@ -36,6 +36,14 @@ class MainActivity : ComponentActivity() {
                     1
                 )
             }
+            if (checkSelfPermission(android.Manifest.permission.INTERNET)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                requestPermissions(
+                    arrayOf(android.Manifest.permission.INTERNET),
+                    1
+                )
+            }
         }
 
         // Channel de notification
@@ -112,7 +120,8 @@ fun ImportScreen(viewModel: MainViewModele) {
                     label = { Text("Télécharger les données (TODO)") },
                     selected = false,
                     onClick = {
-                        scope.launch { drawerState.close() }
+                        scope.launch { drawerState.close()
+                        viewModel.telechargerFichiersval()}
                     }
                 )
 

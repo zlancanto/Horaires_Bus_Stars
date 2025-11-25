@@ -62,4 +62,7 @@ dependencies {
     implementation("androidx.room:room-ktx:$room_version")
     testImplementation("androidx.room:room-testing:$room_version")
     ksp("androidx.room:room-compiler:$room_version")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.17.+" )
+
 }

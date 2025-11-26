@@ -1,13 +1,20 @@
 package com.example.horairebusmihanbot.services
 
 import android.content.Context
+import android.content.pm.PackageManager
 import android.util.Log
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import com.example.horairebusmihanbot.R
 import com.example.horairebusmihanbot.data.entity.*
 import com.example.horairebusmihanbot.data.impl.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader
+import java.io.File
+import java.io.FileInputStream
 import java.io.InputStream
 import java.io.InputStreamReader
 
@@ -19,65 +26,99 @@ class RenseignerBaseService(
     private val tripRepo: TripImpl,
     private val stopTimeRepo: StopTimeImpl
 ) {
-    // Fichier TXT contenant les données. Ils se trouvent dans res/raw/
-    private val rawFiles: Map<String, Int> = mapOf(
-        "routes.txt" to R.raw.routes,
-        "calendar.txt" to R.raw.calendar,
-        "stops.txt" to R.raw.stops,
-        "trips.txt" to R.raw.trips,
-        "stop_times.txt" to R.raw.stop_times
+
+    // Le dossier GTFS extraits via TelechargerFichiersService
+    private val gtfsFolder = File(context.filesDir, "gtfs")
+
+    // Les fichiers que l’on doit importer, dans l'ordre
+    private val gtfsFiles = listOf(
+        "routes.txt",
+        "calendar.txt",
+        "stops.txt",
+        "trips.txt",
+        "stop_times.txt"
     )
 
     private var totalLinesToProcess = 0
     private var currentLinesProcessed = 0
 
-    // Fonction qui gère l'import des données.
+
     suspend fun startImport(onProgress: (Float) -> Unit) = withContext(Dispatchers.IO) {
         val start = System.currentTimeMillis()
-        Log.i("IMPORT", "Début de l'importation...")
+        Log.i("IMPORT", "Début de l'importation depuis dossier GTFS : ${gtfsFolder.absolutePath}")
 
-        onProgress(0f) // Utile pour la barre de progression
+        onProgress(0f)
+
+        // Compte total des lignes
         totalLinesToProcess = countTotalLines()
         currentLinesProcessed = 0
 
         if (totalLinesToProcess == 0) {
-            Log.w("IMPORT", "Aucune ligne à traiter.")
+            Log.w("IMPORT", "Aucune ligne détectée. Vérifie que le ZIP est extrait.")
             onProgress(1f)
             return@withContext
         }
-        // Import des données
+
+        // Import dans le bon ordre
+        Log.w("IMPORT", "Début import routes")
         importRoutes(onProgress)
+        Log.w("IMPORT", "Fin import routes")
+        sendNotification(context, "Routes importées")
+
+        Log.w("IMPORT", "Début import calendrier")
         importCalendar(onProgress)
+        Log.w("IMPORT", "Fin import calendrier")
+        sendNotification(context, "Calendrier importé")
+
+        Log.w("IMPORT", "Début import stops")
         importStops(onProgress)
+        Log.w("IMPORT", "Fin import stops")
+        sendNotification(context, "Stops importés")
+
+        Log.w("IMPORT", "Début import trips")
         importTrips(onProgress)
+        Log.w("IMPORT", "Fin import trips")
+        sendNotification(context, "Trips importés")
+
+        Log.w("IMPORT", "Début import stop times")
         importStopTimes(onProgress)
+        Log.w("IMPORT", "Fin import stop times")
+        sendNotification(context, "Stop times importés")
 
         onProgress(1f)
+
         val duration = (System.currentTimeMillis() - start) / 1000
         Log.i("IMPORT", "Import terminé en $duration secondes.")
     }
 
-    // Fonction pour récupérer le chemin du fichier passé en paramètre.
-    private fun getResourceStream(fileName: String): InputStream? {
-        val rawId = rawFiles[fileName]
-        if (rawId == null) {
-            Log.e("IMPORT", "Fichier $fileName introuvable.")
-            return null
+
+    private fun getGTFSFileStream(fileName: String): InputStream? {
+        val file = File(gtfsFolder, fileName)
+
+        return if (file.exists()) {
+            FileInputStream(file)
+        } else {
+            Log.e("IMPORT", "Fichier GTFS introuvable : ${file.absolutePath}")
+            null
         }
-        return context.resources.openRawResource(rawId)
     }
-    // Fonction pour compter le nombre de lignes à traiter.
-    // Utilise pour la barre de progression.
-    // Et le pourcentage.
+
+
+    // Comptage des lignes pour la progression
     private fun countTotalLines(): Int {
         var count = 0
 
-        rawFiles.forEach { (fileName, rawId) ->
-            try {
-                context.resources.openRawResource(rawId).use { stream ->
-                    val lines = BufferedReader(InputStreamReader(stream))
-                        .useLines { it.count() }
+        gtfsFiles.forEach { fileName ->
+            val file = File(gtfsFolder, fileName)
 
+            if (!file.exists()) {
+                Log.e("IMPORT", "Impossible de compter lignes (manque): $fileName")
+                return@forEach
+            }
+
+            try {
+                BufferedReader(InputStreamReader(FileInputStream(file))).useLines { seq ->
+                    val lines = seq.count()
                     count += (lines - 1).coerceAtLeast(0)
                 }
             } catch (e: Exception) {
@@ -88,6 +129,7 @@ class RenseignerBaseService(
         return count
     }
 
+
     private suspend fun <T> parseFile(
         fileName: String,
         mapper: (List<String>) -> T?,
@@ -95,7 +137,7 @@ class RenseignerBaseService(
         onProgress: (Float) -> Unit
     ) {
         try {
-            getResourceStream(fileName)?.use { stream ->
+            getGTFSFileStream(fileName)?.use { stream ->
                 BufferedReader(InputStreamReader(stream)).useLines { lines ->
                     lines.drop(1)
                         .map { it.split(",") }
@@ -115,10 +157,12 @@ class RenseignerBaseService(
                         }
                 }
             } ?: Log.e("IMPORT", "Fichier introuvable : $fileName")
+
         } catch (e: Exception) {
             Log.e("IMPORT", "Erreur critique dans $fileName : ${e.message}")
         }
     }
+
 
     private suspend fun importRoutes(onProgress: (Float) -> Unit) {
         parseFile(
@@ -215,21 +259,47 @@ class RenseignerBaseService(
         )
     }
 
+
     private fun List<String>.getOrNull(index: Int): String? =
         if (index < size) this[index] else null
 
 
     suspend fun clearDatabase() = withContext(Dispatchers.IO) {
-        try {
-            routeRepo.deleteAll()
-            calendarRepo.deleteAll()
-            stopRepo.deleteAll()
-            tripRepo.deleteAll()
-            stopTimeRepo.deleteAll()
+        routeRepo.deleteAll()
+        calendarRepo.deleteAll()
+        stopRepo.deleteAll()
+        tripRepo.deleteAll()
+        stopTimeRepo.deleteAll()
+        Log.i("DB", "Base de données vidée.")
+    }
 
-            Log.i("DB", "Base de données vidée avec succès")
-        } catch (e: Exception) {
-            Log.e("DB", "Erreur lors du vidage de la BDD : ${e.message}")
+
+    private fun sendNotification(context: Context, contenu: String) {
+        val hasPermission = ActivityCompat.checkSelfPermission(
+            context,
+            android.Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (!hasPermission) {
+            Log.e("IMPORT", "Permission notification manquante")
+            return
+        }
+
+        // Fire-and-forget, dans le scope global de l'app
+        kotlinx.coroutines.GlobalScope.launch(Dispatchers.Default) {
+            try {
+                val nm = NotificationManagerCompat.from(context)
+                val builder = NotificationCompat.Builder(context, "IMPORT_CHANNEL")
+                    .setSmallIcon(R.drawable.ic_notification)
+                    .setContentTitle(contenu)
+                    .setContentText("Données copiées dans la BDD.")
+                    .setPriority(NotificationCompat.PRIORITY_LOW) // moins bruyant
+
+                // Utiliser un notifId unique à chaque fois
+                nm.notify(System.currentTimeMillis().toInt() and 0xfffffff, builder.build())
+            } catch (e: Exception) {
+                Log.e("IMPORT", "Erreur lors de la notification", e)
+            }
         }
     }
 

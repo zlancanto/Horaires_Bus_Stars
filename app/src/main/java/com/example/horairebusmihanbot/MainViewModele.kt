@@ -9,7 +9,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.horairebusmihanbot.data.*
-import com.example.horairebusmihanbot.data.repository.*
+import com.example.horairebusmihanbot.data.impl.*
 import com.example.horairebusmihanbot.services.RenseignerBaseService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -42,11 +42,14 @@ class MainViewModele(application: Application) : AndroidViewModel(application) {
 
             val service = RenseignerBaseService(
                 context,
-                BusRouteRepository(db.busRouteDao()),
-                CalendarRepository(db.calendarDao()),
-                StopRepository(db.stopDao()),
-                TripRepository(db.tripDao()),
-                StopTimeRepository(db.stopTimeDao())
+                BusRouteImpl
+                    .Builder()
+                    .busRouteDao(db.busRouteDao())
+                    .build(),
+                CalendarImpl(db.calendarDao()),
+                StopImpl(db.stopDao()),
+                TripImpl(db.tripDao()),
+                StopTimeImpl(db.stopTimeDao())
             )
 
             try {
@@ -70,11 +73,14 @@ class MainViewModele(application: Application) : AndroidViewModel(application) {
         val db = AppDatabase.getDatabase(context)
         val service = RenseignerBaseService(
             context,
-            BusRouteRepository(db.busRouteDao()),
-            CalendarRepository(db.calendarDao()),
-            StopRepository(db.stopDao()),
-            TripRepository(db.tripDao()),
-            StopTimeRepository(db.stopTimeDao())
+            BusRouteImpl
+                .Builder()
+                .busRouteDao(db.busRouteDao())
+                .build(),
+            CalendarImpl(db.calendarDao()),
+            StopImpl(db.stopDao()),
+            TripImpl(db.tripDao()),
+            StopTimeImpl(db.stopTimeDao())
         )
 
         viewModelScope.launch {

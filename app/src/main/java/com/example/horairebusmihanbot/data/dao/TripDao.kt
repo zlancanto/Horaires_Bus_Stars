@@ -12,4 +12,6 @@ interface TripDao {
     suspend fun insertAll(routes: List<Trip>)
     @Query("DELETE FROM trip")
     suspend fun deleteAll()
+    @Query("SELECT trip_headsign FROM trip WHERE route_id = :routeId")
+    suspend fun getDirectionsByRouteId(routeId: String): List<String>
 }

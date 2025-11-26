@@ -3,6 +3,7 @@ package com.example.horairebusmihanbot
 import android.app.Application
 import android.content.Context
 import android.content.pm.PackageManager
+import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -32,9 +33,9 @@ class MainViewModele(application: Application) : AndroidViewModel(application) {
     private val _isImporting = MutableStateFlow(false)
     val isImporting: StateFlow<Boolean> = _isImporting.asStateFlow()
 
-    fun startGtfsImport() {
+    suspend fun startGtfsImport() {
         if (_isImporting.value) return
-
+        Log.e("IMPORT", "Appel import")
         _isImporting.value = true
         _importProgress.value = 0f
 
@@ -67,7 +68,7 @@ class MainViewModele(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun clearDatabase() {
+    suspend fun clearDatabase() {
         val context = getApplication<Application>().applicationContext
         val db = AppDatabase.getDatabase(context)
         val service = RenseignerBaseService(
@@ -79,18 +80,17 @@ class MainViewModele(application: Application) : AndroidViewModel(application) {
             StopTimeRepository(db.stopTimeDao())
         )
 
-        viewModelScope.launch {
-            service.clearDatabase()
-        }
+        service.clearDatabase()
+
         _databaseCleared.value = true
         _isImporting.value = false
     }
 
-    fun telechargerFichiersval() {
+    suspend fun telechargerFichiersval() {
         var service = TelechargerFichiersService( getApplication<Application>().applicationContext)
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                service.telechargerEtExtraire()            }
+        withContext(Dispatchers.IO) {
+            service.telechargerEtExtraire()
         }
     }
+
 }

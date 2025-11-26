@@ -10,6 +10,7 @@ import com.example.horairebusmihanbot.R
 import com.example.horairebusmihanbot.data.entity.*
 import com.example.horairebusmihanbot.data.repository.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.File
@@ -38,8 +39,6 @@ class RenseignerBaseService(
         "stop_times.txt"
     )
 
-    private var notifId = 1000
-
     private var totalLinesToProcess = 0
     private var currentLinesProcessed = 0
 
@@ -61,19 +60,29 @@ class RenseignerBaseService(
         }
 
         // Import dans le bon ordre
+        Log.w("IMPORT", "Début import routes")
         importRoutes(onProgress)
+        Log.w("IMPORT", "Fin import routes")
         sendNotification(context, "Routes importées")
 
+        Log.w("IMPORT", "Début import calendrier")
         importCalendar(onProgress)
+        Log.w("IMPORT", "Fin import calendrier")
         sendNotification(context, "Calendrier importé")
 
+        Log.w("IMPORT", "Début import stops")
         importStops(onProgress)
+        Log.w("IMPORT", "Fin import stops")
         sendNotification(context, "Stops importés")
 
+        Log.w("IMPORT", "Début import trips")
         importTrips(onProgress)
+        Log.w("IMPORT", "Fin import trips")
         sendNotification(context, "Trips importés")
 
+        Log.w("IMPORT", "Début import stop times")
         importStopTimes(onProgress)
+        Log.w("IMPORT", "Fin import stop times")
         sendNotification(context, "Stop times importés")
 
         onProgress(1f)
@@ -276,17 +285,22 @@ class RenseignerBaseService(
             return
         }
 
-        val nm = NotificationManagerCompat.from(context)
-        val builder = NotificationCompat.Builder(context, "IMPORT_CHANNEL")
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(contenu)
-            .setContentText("Données copiées dans la BDD.")
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+        // Fire-and-forget, dans le scope global de l'app
+        kotlinx.coroutines.GlobalScope.launch(Dispatchers.Default) {
+            try {
+                val nm = NotificationManagerCompat.from(context)
+                val builder = NotificationCompat.Builder(context, "IMPORT_CHANNEL")
+                    .setSmallIcon(R.drawable.ic_notification)
+                    .setContentTitle(contenu)
+                    .setContentText("Données copiées dans la BDD.")
+                    .setPriority(NotificationCompat.PRIORITY_LOW) // moins bruyant
 
-        try {
-            nm.notify(notifId++, builder.build())
-        } catch (e: Exception) {
-            Log.e("IMPORT", "Erreur lors de la notification", e)
+                // Utiliser un notifId unique à chaque fois
+                nm.notify(System.currentTimeMillis().toInt() and 0xfffffff, builder.build())
+            } catch (e: Exception) {
+                Log.e("IMPORT", "Erreur lors de la notification", e)
+            }
         }
     }
+
 }

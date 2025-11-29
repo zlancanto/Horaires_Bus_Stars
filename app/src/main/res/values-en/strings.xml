@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">HoraireBusMihanBot</string>
+
+    <string name="label_selected_date">Selected Date:</string>
+    <string name="button_select_date">Select Date</string>
+
+    <string name="label_selected_time">Selected Time:</string>
+    <string name="button_select_time">Select Time</string>
+
+    <string name="label_select_bus_line">Select a Bus Line:</string>
+
+    <string name="label_available_directions">Available Directions:</string>
+
+    <string name="state_download_in_progress">Downloading files in progress...</string>
+    <string name="state_database_fill_in_progress">Filling database in progress...</string>
+    <string name="state_database_erasing">Erasing database in progress</string>
+    <string name="button_reload_database">Redownload Database</string>
+
+</resources>

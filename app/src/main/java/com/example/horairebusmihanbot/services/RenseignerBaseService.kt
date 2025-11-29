@@ -8,7 +8,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.example.horairebusmihanbot.R
 import com.example.horairebusmihanbot.data.entity.*
-import com.example.horairebusmihanbot.data.repository.*
+import com.example.horairebusmihanbot.data.impl.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -20,11 +20,11 @@ import java.io.InputStreamReader
 
 class RenseignerBaseService(
     private val context: Context,
-    private val routeRepo: BusRouteRepository,
-    private val calendarRepo: CalendarRepository,
-    private val stopRepo: StopRepository,
-    private val tripRepo: TripRepository,
-    private val stopTimeRepo: StopTimeRepository
+    private val routeRepo: BusRouteImpl,
+    private val calendarRepo: CalendarImpl,
+    private val stopRepo: StopImpl,
+    private val tripRepo: TripImpl,
+    private val stopTimeRepo: StopTimeImpl
 ) {
 
     // Le dossier GTFS extraits via TelechargerFichiersService

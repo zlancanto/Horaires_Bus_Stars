@@ -18,11 +18,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 
 class MainViewModele(application: Application) : AndroidViewModel(application) {
 
-    // État de l'importation
-    // -1f = pas commencée, 0f-1f = en cours, 2f = terminée
+    private val initialImportStatus: Boolean = checkInitialImportStatus(application)
     private val _databaseCleared = MutableStateFlow(false)
     val databaseCleared = _databaseCleared.asStateFlow()
 
@@ -32,11 +32,14 @@ class MainViewModele(application: Application) : AndroidViewModel(application) {
     private val _isImporting = MutableStateFlow(false)
     val isImporting: StateFlow<Boolean> = _isImporting.asStateFlow()
 
-    private val _isImportComplete = MutableStateFlow(false)
+    private val _isImportComplete = MutableStateFlow(initialImportStatus)
     val isImportComplete: StateFlow<Boolean> = _isImportComplete.asStateFlow()
 
-    suspend fun startGtfsImport() {
+    fun startGtfsImport() {
         if (_isImporting.value) return
+
+        _isImportComplete.value = false
+
         Log.e("IMPORT", "Appel import")
         _isImporting.value = true
         _importProgress.value = 0f
@@ -64,7 +67,7 @@ class MainViewModele(application: Application) : AndroidViewModel(application) {
                 }
                 _importProgress.value = 1f
                 _isImportComplete.value = true
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _importProgress.value = -1f
             } finally {
                 _isImporting.value = false
@@ -75,6 +78,8 @@ class MainViewModele(application: Application) : AndroidViewModel(application) {
     }
 
     suspend fun clearDatabase() {
+        _isImportComplete.value = false
+
         val context = getApplication<Application>().applicationContext
         val db = AppDatabase.Companion.getDatabase(context)
         val service = RenseignerBaseService(
@@ -96,7 +101,9 @@ class MainViewModele(application: Application) : AndroidViewModel(application) {
     }
 
     suspend fun telechargerFichiersval() {
-        var service = TelechargerFichiersService(getApplication<Application>().applicationContext)
+        _isImportComplete.value = false
+
+        val service = TelechargerFichiersService(getApplication<Application>().applicationContext)
         withContext(Dispatchers.IO) {
             service
                 .telechargerEtExtraire()
@@ -105,4 +112,13 @@ class MainViewModele(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    private fun checkInitialImportStatus(application: Application): Boolean {
+        // La même logique de vérification que dans MainActivity
+        val context = application.applicationContext
+        val gtfsFolder = File(context.filesDir, "gtfs")
+        val stopsFile = File(gtfsFolder, "stops.txt")
+
+        // Si les fichiers existent, on considère que l'importation est complète
+        return gtfsFolder.exists() && stopsFile.exists()
+    }
 }

@@ -1,4 +1,4 @@
-package com.example.horairebusmihanbot.ui.common
+package com.example.horairebusmihanbot.ui.components
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,45 +11,56 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.example.horairebusmihanbot.R
+import com.example.horairebusmihanbot.data.entity.BusRoute
 
 /**
- * Composable personnalisé pour simuler le comportement d'un Spinner/Dropdown.
+ * Composant d'Abstraction pour le Dropdown (équivalent du Spinner/Adapter)
  */
 @Composable
-fun BusLineSpinner(
-    items: List<String>,
-    selectedItemIndex: MutableIntState,
-    onItemSelected: (Int) -> Unit
+fun BusLineDropdown(
+    routes: List<BusRoute>,
+    selectedRoute: BusRoute?,
+    onRouteSelected: (BusRoute?) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
+
+    // Le texte affiché est soit la route sélectionnée, soit une valeur par défaut
+    val displayValue = selectedRoute?.shortName ?: stringResource(R.string.label_select_bus_line)
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentSize(Alignment.TopStart)
     ) {
-        OutlinedButton(onClick = { expanded = true }) {
-            Text(items[selectedItemIndex.intValue])
+        OutlinedButton(
+            onClick = { if (routes.isNotEmpty()) expanded = true },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(displayValue, modifier = Modifier.weight(1f))
             Icon(Icons.Default.ArrowDropDown, contentDescription = "Dropdown")
         }
+
         DropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false }
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.fillMaxWidth(0.9f) // Prend 90% de la largeur du parent
         ) {
-            items.forEachIndexed { index, item ->
+            routes.forEach { route ->
                 DropdownMenuItem(
-                    text = { Text(item) },
+                    text = { route.shortName?.let { Text(it) } },
                     onClick = {
-                        onItemSelected(index)
+                        onRouteSelected(route)
                         expanded = false
-                    }
+                    },
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
         }

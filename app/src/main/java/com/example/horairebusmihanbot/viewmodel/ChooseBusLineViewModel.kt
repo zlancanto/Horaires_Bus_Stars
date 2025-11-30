@@ -6,6 +6,7 @@ import com.example.horairebusmihanbot.data.entity.BusRoute
 import com.example.horairebusmihanbot.repository.BusRouteRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -16,7 +17,7 @@ import java.time.LocalDate
 import java.time.LocalTime
 
 class ChooseBusLineViewModel constructor(
-    private val busRouteRepository: BusRouteRepository // L'interface du Repository
+    private val busRouteRepository: BusRouteRepository
 ) : ViewModel() {
 
     // Utiliser un StateFlow pour charger la liste une seule fois au démarrage
@@ -49,14 +50,13 @@ class ChooseBusLineViewModel constructor(
         }
         .stateIn(
             scope = viewModelScope,
-            started = kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000),
+            started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
 
     init {
         // Chargement initial des lignes de bus (doit être fait dans le Repository)
         viewModelScope.launch {
-            // Supposons une fonction suspend dans le repository :
             busRouteRepository.getAllAsFlow().collect { routes ->
                 _busRoutes.value = routes
                 if (routes.isNotEmpty() && _selectedRoute.value == null) {
@@ -71,7 +71,6 @@ class ChooseBusLineViewModel constructor(
     }
 
     fun updateSelectedDate(year: Int, month: Int, dayOfMonth: Int) {
-        // Le mois est 0-indexé dans DatePickerDialog mais 1-indexé dans LocalDate.
         _selectedDate.value = LocalDate.of(year, month + 1, dayOfMonth)
     }
 

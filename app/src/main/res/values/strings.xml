@@ -1,20 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">HoraireBusMihanBot</string>
+    <string name="menu">Menu</string>
 
     <string name="label_selected_date">Date sélectionnée :</string>
     <string name="button_select_date">Choisir la date</string>
-
     <string name="label_selected_time">Heure choisie :</string>
     <string name="button_select_time">Choisir l\'heure</string>
-
     <string name="label_select_bus_line">Choisir une ligne de bus :</string>
-
     <string name="label_available_directions">Directions disponibles :</string>
 
-    <string name="state_download_in_progress">Téléchargement des fichiers en cours...</string>
+    <string name="state_download_in_progress">Importation des données...</string>
+    <string name="please_wait">Veuillez patienter svp</string>
+    <string name="import_completed_successfully">Importation terminée avec succès !</string>
+    <string name="database_successfully_emptied">Base de données vidée avec succès !</string>
     <string name="state_database_fill_in_progress">Remplissage de la base de données en cours...</string>
     <string name="state_database_erasing">Effacement de la base en cours</string>
-    <string name="button_reload_database">Retélécharger la base</string>
+    <string name="reload_database">Retélécharger la base</string>
+    <string name="import_data">Importer les données</string>
+    <string name="clear_database">Vider la base de données</string>
+    <string name="download_files">Télécharger les fichiers</string>
 
 </resources>

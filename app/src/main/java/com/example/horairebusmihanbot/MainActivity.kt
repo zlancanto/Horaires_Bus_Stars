@@ -76,7 +76,8 @@ class MainActivity : ComponentActivity() {
 
                     if (isImportComplete) {
                         ScheduleQueryScreen(
-                            busRouteRepository = appContainer.busRouteRepository
+                            busRouteRepository = appContainer.busRouteRepository,
+                            viewModel
                         )
                     } else {
                         ImportScreen(viewModel)

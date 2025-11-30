@@ -3,6 +3,7 @@ package com.example.horairebusmihanbot.ui.screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -34,7 +35,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.horairebusmihanbot.R
+import com.example.horairebusmihanbot.ui.components.AppDrawer
 import com.example.horairebusmihanbot.viewmodel.MainViewModele
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -57,143 +61,67 @@ fun ImportScreen(viewModel: MainViewModele) {
     val scope = rememberCoroutineScope()
 
     // Fonction utilitaire : empêche le clic si désactivé
-    fun lockClick(action: () -> Unit) {
+    val lockClick: (action: () -> Unit) -> Unit = { action ->
         if (isMenuEnabled) {
             isMenuEnabled = false
             action()
         }
+        // Note : C'est la responsabilité du MainViewModel de remettre
+        // isMenuEnabled à 'true' après la fin des opérations longues.
     }
 
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = {
-            ModalDrawerSheet {
+    val content: @Composable (PaddingValues) -> Unit = { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(24.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
 
+            if (isImporting) {
+                Box(contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(
+                        progress = { progress },
+                        modifier = Modifier.size(100.dp),
+                        strokeWidth = 8.dp
+                    )
+                    Text(
+                        text = "${(progress * 100).roundToInt()}%",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+                Spacer(Modifier.height(16.dp))
+                Text(stringResource(R.string.state_download_in_progress))
+                Text(
+                    stringResource(R.string.please_wait),
+                    style = MaterialTheme.typography.bodySmall
+                )
+
+            } else if (progress >= 1f) {
+                Text(
+                    stringResource(R.string.import_completed_successfully),
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            if (databaseCleared) {
                 Spacer(Modifier.height(24.dp))
                 Text(
-                    "Menu",
-                    modifier = Modifier.padding(16.dp),
-                    style = MaterialTheme.typography.titleLarge
+                    text = stringResource(R.string.database_successfully_emptied),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.titleMedium
                 )
-                // Retélécharger la base
-                NavigationDrawerItem(
-                    label = { Text("Retélécharger la base") },
-                    selected = false,
-                    modifier = Modifier.alpha(if (isMenuEnabled) 1f else 0.5f),
-                    onClick = {
-                        lockClick {
-                            scope.launch {
-                                drawerState.close()
-                                viewModel.clearDatabase()            // attend la fin
-                                viewModel.telechargerFichiersval()
-                                // attend la fin
-                                viewModel.startGtfsImport()
-                            }
-                        }
-                    }
-                )
-                // Importer les données
-                NavigationDrawerItem(
-                    label = { Text("Importer les données") },
-                    selected = false,
-                    modifier = Modifier.alpha(if (isMenuEnabled) 1f else 0.5f),
-                    onClick = {
-                        lockClick {
-                            scope.launch { drawerState.close()
-                                viewModel.startGtfsImport()
-                            }
-                        }
-                    }
-                )
-
-                // Vider la base
-                NavigationDrawerItem(
-                    label = { Text("Vider la base de données") },
-                    selected = false,
-                    modifier = Modifier.alpha(if (isMenuEnabled) 1f else 0.5f),
-                    onClick = {
-                        lockClick {
-                            scope.launch { drawerState.close()
-                                viewModel.clearDatabase()
-                            }
-                            isMenuEnabled = true // Action rapide
-                        }
-                    }
-                )
-
-                // Télécharger les données
-                NavigationDrawerItem(
-                    label = { Text("Télécharger les fichiers") },
-                    selected = false,
-                    modifier = Modifier.alpha(if (isMenuEnabled) 1f else 0.5f),
-                    onClick = {
-                        lockClick {
-                            scope.launch { drawerState.close()
-                                viewModel.telechargerFichiersval()
-                            }
-                            isMenuEnabled = true // Action rapide
-                        }
-                    }
-                )
-            }
-        }
-    ) {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text("Horaire Bus Mihan") },
-                    navigationIcon = {
-                        IconButton(
-                            onClick = { scope.launch { drawerState.open() } }
-                        ) {
-                            Icon(Icons.Default.Menu, contentDescription = "Menu")
-                        }
-                    }
-                )
-            }
-        ) { padding ->
-
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .padding(24.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-
-                if (isImporting) {
-                    Box(contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(
-                            progress = { progress },
-                            modifier = Modifier.size(100.dp),
-                            strokeWidth = 8.dp
-                        )
-                        Text(
-                            text = "${(progress * 100).roundToInt()}%",
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                    }
-                    Spacer(Modifier.height(16.dp))
-                    Text("Importation des données...")
-                    Text("Veuillez patienter", style = MaterialTheme.typography.bodySmall)
-
-                } else if (progress >= 1f) {
-                    Text(
-                        "Importation terminée avec succès !",
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-
-                if (databaseCleared) {
-                    Spacer(Modifier.height(24.dp))
-                    Text(
-                        text = "Base de données vidée avec succès !",
-                        color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                }
             }
         }
     }
+
+    AppDrawer(
+        viewModel,
+        drawerState,
+        isMenuEnabled,
+        lockClick,
+        content
+    )
 }

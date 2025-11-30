@@ -1,11 +1,11 @@
 package com.example.horairebusmihanbot.repository
 
-import androidx.lifecycle.LiveData
 import com.example.horairebusmihanbot.data.entity.BusRoute
+import kotlinx.coroutines.flow.Flow
 
 interface BusRouteRepository {
     suspend fun insertAll(routes: List<BusRoute>)
     suspend fun deleteAll()
-    fun getAll(): LiveData<List<BusRoute>>
+    fun getAllAsFlow(): Flow<List<BusRoute>>
     suspend fun getDirectionsByRoute(routeId: String): List<String>
 }

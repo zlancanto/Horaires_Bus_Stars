@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.example.horairebusmihanbot.data.entity.BusRoute
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface BusRouteDao {
@@ -16,5 +17,5 @@ interface BusRouteDao {
     suspend fun deleteAll()
 
     @Query("SELECT * FROM bus_route WHERE route_type = 3 ORDER BY route_short_name ASC")
-    fun getAll(): LiveData<List<BusRoute>>
+    fun getAllAsFlow(): Flow<List<BusRoute>>
 }

@@ -6,6 +6,7 @@ import com.example.horairebusmihanbot.data.dao.TripDao
 import com.example.horairebusmihanbot.data.entity.BusRoute
 import com.example.horairebusmihanbot.exception.requireNonNull
 import com.example.horairebusmihanbot.repository.BusRouteRepository
+import kotlinx.coroutines.flow.Flow
 
 class BusRouteImpl private constructor(
     private val busRouteDao: BusRouteDao?,
@@ -25,9 +26,9 @@ class BusRouteImpl private constructor(
     }
 
     override
-    fun getAll(): LiveData<List<BusRoute>> {
+    fun getAllAsFlow(): Flow<List<BusRoute>> {
         val busRouteDao = requireNonNull(busRouteDao, "BusRouteDao cannot be null")
-        return busRouteDao.getAll()
+        return busRouteDao.getAllAsFlow()
     }
 
     override

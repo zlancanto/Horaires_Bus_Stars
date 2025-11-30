@@ -1,16 +1,15 @@
-package com.example.horairebusmihanbot
+package com.example.horairebusmihanbot.viewmodel
 
 import android.app.Application
-import android.content.Context
-import android.content.pm.PackageManager
 import android.util.Log
-import androidx.core.app.ActivityCompat
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.horairebusmihanbot.data.*
-import com.example.horairebusmihanbot.data.impl.*
+import com.example.horairebusmihanbot.data.AppDatabase
+import com.example.horairebusmihanbot.data.impl.BusRouteImpl
+import com.example.horairebusmihanbot.data.impl.CalendarImpl
+import com.example.horairebusmihanbot.data.impl.StopImpl
+import com.example.horairebusmihanbot.data.impl.StopTimeImpl
+import com.example.horairebusmihanbot.data.impl.TripImpl
 import com.example.horairebusmihanbot.services.RenseignerBaseService
 import com.example.horairebusmihanbot.services.TelechargerFichiersService
 import kotlinx.coroutines.Dispatchers
@@ -33,6 +32,9 @@ class MainViewModele(application: Application) : AndroidViewModel(application) {
     private val _isImporting = MutableStateFlow(false)
     val isImporting: StateFlow<Boolean> = _isImporting.asStateFlow()
 
+    private val _isImportComplete = MutableStateFlow(false)
+    val isImportComplete: StateFlow<Boolean> = _isImportComplete.asStateFlow()
+
     suspend fun startGtfsImport() {
         if (_isImporting.value) return
         Log.e("IMPORT", "Appel import")
@@ -42,7 +44,7 @@ class MainViewModele(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             // Initialisation manuelle des dépendances
             val context = getApplication<Application>().applicationContext
-            val db = AppDatabase.getDatabase(context)
+            val db = AppDatabase.Companion.getDatabase(context)
 
             val service = RenseignerBaseService(
                 context,
@@ -61,6 +63,7 @@ class MainViewModele(application: Application) : AndroidViewModel(application) {
                     _importProgress.value = progress
                 }
                 _importProgress.value = 1f
+                _isImportComplete.value = true
             } catch (e: Exception) {
                 _importProgress.value = -1f
             } finally {
@@ -73,7 +76,7 @@ class MainViewModele(application: Application) : AndroidViewModel(application) {
 
     suspend fun clearDatabase() {
         val context = getApplication<Application>().applicationContext
-        val db = AppDatabase.getDatabase(context)
+        val db = AppDatabase.Companion.getDatabase(context)
         val service = RenseignerBaseService(
             context,
             BusRouteImpl
@@ -93,9 +96,12 @@ class MainViewModele(application: Application) : AndroidViewModel(application) {
     }
 
     suspend fun telechargerFichiersval() {
-        var service = TelechargerFichiersService( getApplication<Application>().applicationContext)
+        var service = TelechargerFichiersService(getApplication<Application>().applicationContext)
         withContext(Dispatchers.IO) {
-            service.telechargerEtExtraire()
+            service
+                .telechargerEtExtraire()
+                .onSuccess { }
+                .onFailure { }
         }
     }
 

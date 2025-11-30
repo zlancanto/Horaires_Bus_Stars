@@ -1,50 +1,77 @@
 package com.example.horairebusmihanbot.viewmodel
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.liveData
-import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import com.example.horairebusmihanbot.data.entity.BusRoute
 import com.example.horairebusmihanbot.repository.BusRouteRepository
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalTime
 
 class ChooseBusLineViewModel constructor(
-    private val busRouteRepository: BusRouteRepository
+    private val busRouteRepository: BusRouteRepository // L'interface du Repository
 ) : ViewModel() {
-    // Lignes de Bus (pour le Spinner)
-    val busRoutes: LiveData<List<BusRoute>> = busRouteRepository.getAll()
 
-    private val _selectedRoute = MutableLiveData<BusRoute?>()
-    val selectedRoute: LiveData<BusRoute?> = _selectedRoute
+    // Utiliser un StateFlow pour charger la liste une seule fois au démarrage
+    private val _busRoutes = MutableStateFlow<List<BusRoute>>(emptyList())
+    val busRoutes: StateFlow<List<BusRoute>> = _busRoutes.asStateFlow()
 
-    private val _selectedDate = MutableLiveData(LocalDate.now())
-    val selectedDate: LiveData<LocalDate> = _selectedDate
+    private val _selectedRoute = MutableStateFlow<BusRoute?>(null)
+    val selectedRoute: StateFlow<BusRoute?> = _selectedRoute.asStateFlow()
 
-    private val _selectedTime = MutableLiveData(LocalTime.now())
-    val selectedTime: LiveData<LocalTime> = _selectedTime
+    private val _selectedDate = MutableStateFlow(LocalDate.now())
+    val selectedDate: StateFlow<LocalDate> = _selectedDate.asStateFlow()
 
-    // pour récupérer les directions correspondantes.
-    val directions: LiveData<List<String>> = _selectedRoute.switchMap { route ->
-        if (route == null) {
-            MutableLiveData(emptyList())
-        } else {
-            // Utiliser liveData builder pour lancer la requête suspendue
-            liveData(viewModelScope.coroutineContext) {
-                val result = busRouteRepository.getDirectionsByRoute(route.id)
-                emit(result)
+    private val _selectedTime = MutableStateFlow(LocalTime.now())
+    val selectedTime: StateFlow<LocalTime> = _selectedTime.asStateFlow()
+
+    // Récupérer les directions correspondantes.
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val directions: StateFlow<List<String>> = _selectedRoute
+        .flatMapLatest { route ->
+            if (route == null) {
+                // Si aucune route sélectionnée, émettre une liste vide
+                flow { emit(emptyList()) }
+            } else {
+                // Utiliser un flow builder pour lancer la requête suspendue
+                flow {
+                    val result = busRouteRepository.getDirectionsByRoute(route.id)
+                    emit(result)
+                }
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    init {
+        // Chargement initial des lignes de bus (doit être fait dans le Repository)
+        viewModelScope.launch {
+            // Supposons une fonction suspend dans le repository :
+            busRouteRepository.getAllAsFlow().collect { routes ->
+                _busRoutes.value = routes
+                if (routes.isNotEmpty() && _selectedRoute.value == null) {
+                    _selectedRoute.value = routes.first() // Sélectionner la première par défaut
+                }
             }
         }
     }
 
-    //Logique d'interaction
     fun onRouteSelected(route: BusRoute?) {
         _selectedRoute.value = route
     }
 
     fun updateSelectedDate(year: Int, month: Int, dayOfMonth: Int) {
+        // Le mois est 0-indexé dans DatePickerDialog mais 1-indexé dans LocalDate.
         _selectedDate.value = LocalDate.of(year, month + 1, dayOfMonth)
     }
 

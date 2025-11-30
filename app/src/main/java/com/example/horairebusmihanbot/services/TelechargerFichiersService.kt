@@ -35,37 +35,58 @@ class TelechargerFichiersService(private val context: Context) {
 
     suspend fun telechargerEtExtraire() = withContext(Dispatchers.IO) {
 
-        // 1) Télécharger JSON
-        val json = telecharger(apiJsonUrl)
-        Log.e("DOWNLOAD", "Json downloaded")
-        // 2) Trouver l’URL du ZIP
-        val urlZip = extraireUrlDepuisJson(json)
-        Log.e("DOWNLOAD", "Url zip extrait")
+        try {
+            // 1) Télécharger JSON
+            val json = telecharger(apiJsonUrl)
+            Log.e("DOWNLOAD", "Json downloaded")
+            // 2) Trouver l’URL du ZIP
+            val urlZip = extraireUrlDepuisJson(json)
+            Log.e("DOWNLOAD", "Url zip extrait")
 
-        // 3) Télécharger ZIP
-        val zipBytes = telechargerBytes(urlZip)
-        Log.e("DOWNLOAD", "Zip downloaded")
-        sendNotification(context, "Fichier zip téléchargé")
+            // 3) Télécharger ZIP
+            val zipBytes = telechargerBytes(urlZip)
+            Log.e("DOWNLOAD", "Zip downloaded")
+            sendNotification(context, "Fichier zip téléchargé")
 
-        // 4) Extraire les fichiers dans le stockage interne
-        extraireFichiers(zipBytes)
-        Log.e("DOWNLOAD", "Fichiers extraits")
+            // 4) Extraire les fichiers dans le stockage interne
+            extraireFichiers(zipBytes)
+            Log.e("DOWNLOAD", "Fichiers extraits")
+
+            // Succès
+            Result.success(Unit)
+        }
+        catch (e: Exception) {
+            Log.e("DOWNLOAD_FAIL", "Échec du processus de téléchargement et d'extraction.", e)
+            Result.failure(e)
+        }
     }
 
 
      private fun telecharger(url: String): String {
         val req = Request.Builder().url(url).build()
-        client.newCall(req).execute().use { response ->
-            if (!response.isSuccessful) throw Exception("Erreur HTTP: ${response.code}")
-            return response.body?.string() ?: throw Exception("Réponse vide")
+        try {
+            client.newCall(req).execute().use { response ->
+                if (!response.isSuccessful) throw Exception("Erreur HTTP: ${response.code}")
+                return response.body?.string() ?: throw Exception("Réponse vide")
+            }
+        }
+        catch (e: Exception) {
+            Log.e("NETWORK_ERROR", "Erreur lors du téléchargement de $url", e)
+            throw e
         }
     }
 
     private fun telechargerBytes(url: String): ByteArray {
         val req = Request.Builder().url(url).build()
-        client.newCall(req).execute().use {
-            if (!it.isSuccessful) throw Exception("Erreur HTTP: ${it.code}")
-            return it.body?.bytes() ?: throw Exception("Impossible de lire le ZIP")
+        try {
+            client.newCall(req).execute().use {
+                if (!it.isSuccessful) throw Exception("Erreur HTTP: ${it.code}")
+                return it.body?.bytes() ?: throw Exception("Impossible de lire le ZIP")
+            }
+        }
+        catch (e: Exception) {
+            Log.e("NETWORK_ERROR", "Erreur lors du téléchargement de $url", e)
+            throw e
         }
     }
 

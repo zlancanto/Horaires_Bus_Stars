@@ -16,4 +16,5 @@
     <string name="state_database_fill_in_progress">Remplissage de la base de données en cours...</string>
     <string name="state_database_erasing">Effacement de la base en cours</string>
     <string name="button_reload_database">Retélécharger la base</string>
+
 </resources>

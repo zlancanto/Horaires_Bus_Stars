@@ -101,11 +101,6 @@ fun ImportScreen(viewModel: MainViewModele) {
                     style = MaterialTheme.typography.bodySmall
                 )
 
-            } else if (progress >= 1f) {
-                Text(
-                    stringResource(R.string.import_completed_successfully),
-                    color = MaterialTheme.colorScheme.primary
-                )
             }
 
             if (databaseCleared) {

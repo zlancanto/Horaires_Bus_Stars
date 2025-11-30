@@ -49,7 +49,7 @@ fun AppDrawerContent(
                 scope.launch {
                     drawerState.close()
                     mainViewModel.clearDatabase()
-                    mainViewModel.telechargerFichiersval()
+                    mainViewModel.telechargerFichiers()
                     mainViewModel.startGtfsImport()
                 }
             }

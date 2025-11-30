@@ -17,8 +17,5 @@
     <string name="state_database_fill_in_progress">Remplissage de la base de données en cours...</string>
     <string name="state_database_erasing">Effacement de la base en cours</string>
     <string name="reload_database">Retélécharger la base</string>
-    <string name="import_data">Importer les données</string>
-    <string name="clear_database">Vider la base de données</string>
-    <string name="download_files">Télécharger les fichiers</string>
-
+    <string name="data_copied_to_db">Données copiées dans la base de données</string>
 </resources>

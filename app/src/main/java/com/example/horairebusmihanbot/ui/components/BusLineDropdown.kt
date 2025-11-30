@@ -1,5 +1,6 @@
 package com.example.horairebusmihanbot.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.wrapContentSize
@@ -8,6 +9,7 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,8 +34,16 @@ fun BusLineDropdown(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    // Le texte affiché est soit la route sélectionnée, soit une valeur par défaut
+    // Définir les couleurs par défaut
+    val defaultRouteColor = MaterialTheme.colorScheme.surface
+    val defaultTextColor = MaterialTheme.colorScheme.onSurface
+
+    // Le texte affiché dans le bouton
     val displayValue = selectedRoute?.shortName ?: stringResource(R.string.label_select_bus_line)
+
+    // Couleurs du bouton actuellement sélectionné (si disponible)
+    val selectedBgColor = gtfsColorToComposeColor(selectedRoute?.color, defaultRouteColor)
+    val selectedTextColor = gtfsColorToComposeColor(selectedRoute?.textColor, defaultTextColor)
 
     Box(
         modifier = Modifier
@@ -42,10 +52,20 @@ fun BusLineDropdown(
     ) {
         OutlinedButton(
             onClick = { if (routes.isNotEmpty()) expanded = true },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(selectedBgColor)
         ) {
-            Text(displayValue, modifier = Modifier.weight(1f))
-            Icon(Icons.Default.ArrowDropDown, contentDescription = "Dropdown")
+            Text(
+                displayValue,
+                color = selectedTextColor,
+                modifier = Modifier.weight(1f)
+            )
+            Icon(
+                Icons.Default.ArrowDropDown,
+                contentDescription = "Dropdown",
+                tint = selectedTextColor
+            )
         }
 
         DropdownMenu(
@@ -54,13 +74,17 @@ fun BusLineDropdown(
             modifier = Modifier.fillMaxWidth(0.9f) // Prend 90% de la largeur du parent
         ) {
             routes.forEach { route ->
+                val bgColor = gtfsColorToComposeColor(route.color, defaultRouteColor)
+                val txtColor = gtfsColorToComposeColor(route.textColor, defaultTextColor)
                 DropdownMenuItem(
-                    text = { route.shortName?.let { Text(it) } },
+                    text = { route.shortName?.let { Text(it, color = txtColor) } },
                     onClick = {
                         onRouteSelected(route)
                         expanded = false
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(bgColor)
                 )
             }
         }

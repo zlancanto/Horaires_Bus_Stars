@@ -13,8 +13,11 @@ import com.example.horairebusmihanbot.data.impl.TripImpl
 import com.example.horairebusmihanbot.services.RenseignerBaseService
 import com.example.horairebusmihanbot.services.TelechargerFichiersService
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -34,6 +37,10 @@ class MainViewModele(application: Application) : AndroidViewModel(application) {
 
     private val _isImportComplete = MutableStateFlow(initialImportStatus)
     val isImportComplete: StateFlow<Boolean> = _isImportComplete.asStateFlow()
+
+    // 🚨 NOUVEAUTÉ : Flux partagé pour les événements UI (popups/snackbars)
+    private val _uiEvent = MutableSharedFlow<String>()
+    val uiEvent: SharedFlow<String> = _uiEvent.asSharedFlow()
 
     fun startGtfsImport() {
         if (_isImporting.value) return
@@ -67,8 +74,10 @@ class MainViewModele(application: Application) : AndroidViewModel(application) {
                 }
                 _importProgress.value = 1f
                 _isImportComplete.value = true
-            } catch (_: Exception) {
+            } catch (e: Exception) {
                 _importProgress.value = -1f
+                val errorMessage = "Erreur d'importation : ${e.localizedMessage ?: "Erreur inconnue."}"
+                _uiEvent.emit(errorMessage)
             } finally {
                 _isImporting.value = false
                 _databaseCleared.value = false
@@ -100,25 +109,35 @@ class MainViewModele(application: Application) : AndroidViewModel(application) {
         _isImporting.value = false
     }
 
-    suspend fun telechargerFichiersval() {
+    suspend fun telechargerFichiers(): Result<Unit> {
         _isImportComplete.value = false
 
-        val service = TelechargerFichiersService(getApplication<Application>().applicationContext)
-        withContext(Dispatchers.IO) {
-            service
-                .telechargerEtExtraire()
-                .onSuccess { }
-                .onFailure { }
+        val service = TelechargerFichiersService(
+            getApplication<Application>().applicationContext
+        )
+        val result = withContext(Dispatchers.IO) {
+            service.telechargerEtExtraire()
         }
+
+        if (result.isFailure) {
+            _isImporting.value = false
+            _importProgress.value = -1f
+
+            val error = result.exceptionOrNull()
+            val errorMessage = "Échec du téléchargement : ${error?.localizedMessage ?: "Vérifiez votre connexion internet."}"
+            _uiEvent.emit(errorMessage)
+
+        }
+        return result
     }
 
     private fun checkInitialImportStatus(application: Application): Boolean {
         // La même logique de vérification que dans MainActivity
         val context = application.applicationContext
         val gtfsFolder = File(context.filesDir, "gtfs")
-        val stopsFile = File(gtfsFolder, "stops.txt")
+        val tripsFile = File(gtfsFolder, "trips.txt")
 
         // Si les fichiers existent, on considère que l'importation est complète
-        return gtfsFolder.exists() && stopsFile.exists()
+        return gtfsFolder.exists() && tripsFile.exists()
     }
 }

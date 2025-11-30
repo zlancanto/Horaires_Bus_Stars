@@ -17,7 +17,5 @@
     <string name="state_database_fill_in_progress">Filling database in progress...</string>
     <string name="state_database_erasing">Erasing database in progress</string>
     <string name="reload_database">Redownload database</string>
-    <string name="import_data">Import data</string>
-    <string name="clear_database">Clear the database</string>
-    <string name="download_files">Download the files</string>
+    <string name="data_copied_to_db">Data copied to the database</string>
 </resources>

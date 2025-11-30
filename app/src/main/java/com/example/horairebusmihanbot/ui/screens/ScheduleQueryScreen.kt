@@ -23,6 +23,7 @@ import com.example.horairebusmihanbot.ui.components.BusLineDropdown
 import com.example.horairebusmihanbot.viewmodel.ChooseBusLineViewModel
 import com.example.horairebusmihanbot.viewmodel.MainViewModele
 import com.example.horairebusmihanbot.viewmodel.dependances.ChooseBusLineViewModelFactory
+import kotlinx.coroutines.flow.collectLatest
 import java.time.format.DateTimeFormatter
 
 /**
@@ -33,6 +34,7 @@ fun ScheduleQueryScreen(
     busRouteRepository: BusRouteRepository,
     mainViewModele: MainViewModele
 ) {
+    val snackbarHostState = remember { SnackbarHostState() }
 
     // 2. Création de la Factory, mémorisée pour éviter de la recréer à chaque recomposition
     val factory = remember {
@@ -85,9 +87,6 @@ fun ScheduleQueryScreen(
     }
 
     var isMenuEnabled by remember { mutableStateOf(true) }
-
-
-    // --- 3. Construction de l'UI ---
 
     val content: @Composable (PaddingValues) -> Unit = { innerPadding ->
         Column(
@@ -189,11 +188,25 @@ fun ScheduleQueryScreen(
         // isMenuEnabled à 'true' après la fin des opérations longues.
     }
 
+    // 🚨 NOUVEAUTÉ : Lancement de l'observateur d'événements
+    LaunchedEffect(key1 = Unit) {
+        mainViewModele.uiEvent.collectLatest { message ->
+            // On affiche le message d'événement dans la Snackbar
+            snackbarHostState.showSnackbar(
+                message = message,
+                actionLabel = "OK",
+                withDismissAction = true,
+                duration = SnackbarDuration.Long
+            )
+        }
+    }
+
     AppDrawer(
         mainViewModele,
         drawerState,
         isMenuEnabled,
         lockClick,
+        snackbarHostState,
         content
     )
 }

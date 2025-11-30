@@ -60,7 +60,7 @@ class MainActivity : ComponentActivity() {
         if (!gtfsFolder.exists() || !stopsFile.exists()) {
             lifecycleScope.launch {
                 viewModel.clearDatabase()            // attend la fin
-                viewModel.telechargerFichiersval()   // attend la fin
+                viewModel.telechargerFichiers()   // attend la fin
                 viewModel.startGtfsImport()          // attend la fin
             }
         }

@@ -35,7 +35,8 @@ fun AppDrawer(
     mainViewModel: MainViewModele,
     drawerState: DrawerState,
     isMenuEnabled: Boolean,
-    lockClick: (() -> Unit) -> Unit, // (lambda: () -> Unit) -> Unit
+    lockClick: (() -> Unit) -> Unit,
+    snackbarHostState: SnackbarHostState,
     content: @Composable (PaddingValues) -> Unit
 ) {
     val scope = rememberCoroutineScope()
@@ -55,6 +56,7 @@ fun AppDrawer(
         },
         content = {
             Scaffold(
+                snackbarHost = { SnackbarHost(snackbarHostState) },
                 topBar = {
                     TopAppBar(
                         title = { Text(stringResource(R.string.app_name)) },

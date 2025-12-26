@@ -1,12 +1,3 @@
 # HoraireBus
 
-
-
-## Spec
-
-Si on a des besoins en terme d'implémentation spécifique, on les marque ici.
-Type, version du JDK, etc.
-
-## TODO
-
-- Ne pas oublier de commenter le code pour le prof, car il va le regarder.
+Cette application mobile, dédiée à la gestion en temps réel des horaires du réseau de transport STAR, constitue une démonstration de maîtrise du développement Android natif et du traitement de données à grande échelle. Le système assure de manière autonome le téléchargement, l'extraction et l'indexation de flux de données GTFS complexes.

@@ -1,20 +1,27 @@
 package com.example.horairebusmihanbot.repository
 
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 object SyncRepository {
-    // StateFlow pour observer la progression (0 à 100)
+    private val _state = MutableStateFlow<SyncState>(SyncState.Idle)
+    val state = _state.asStateFlow()
+
+    fun update(newState: SyncState) { _state.value = newState }
+
+    ///////
     private val _progress = MutableStateFlow(0)
-    val progress: StateFlow<Int> = _progress.asStateFlow()
+    val progress = _progress.asStateFlow()
 
-    // Indique si la base est prête
+    private val _currentTable = MutableStateFlow("")
+    val currentTable = _currentTable.asStateFlow()
+
     private val _isDataReady = MutableStateFlow(false)
-    val isDataReady: StateFlow<Boolean> = _isDataReady.asStateFlow()
+    val isDataReady = _isDataReady.asStateFlow()
 
-    fun updateProgress(value: Int) {
+    fun updateProgress(value: Int, tableName: String = "") {
         _progress.value = value
+        if (tableName.isNotEmpty()) _currentTable.value = tableName
     }
 
     fun setDataReady(ready: Boolean) {

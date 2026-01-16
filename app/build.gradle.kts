@@ -93,4 +93,6 @@ dependencies {
 
     // Network
     implementation("com.squareup.okhttp3:okhttp:5.3.2")
+    //Jackson
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.2")
 }

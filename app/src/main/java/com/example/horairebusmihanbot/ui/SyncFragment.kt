@@ -1,38 +1,64 @@
 package com.example.horairebusmihanbot.ui
 
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.example.horairebusmihanbot.R
 import com.example.horairebusmihanbot.databinding.FragmentSyncBinding
+import com.example.horairebusmihanbot.repository.SyncRepository
+import com.example.horairebusmihanbot.repository.SyncState
+import com.example.horairebusmihanbot.viewmodel.SyncViewModel
+import kotlinx.coroutines.launch
 
 class SyncFragment : Fragment(R.layout.fragment_sync) {
-
-    // On écoute quand le remplissage est fini
-    private val receiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            findNavController().navigate(SyncFragmentDirections.toSelection())
-        }
-    }
+    private val viewModel: SyncViewModel by viewModels()
+    private var _binding: FragmentSyncBinding? = null
+    private val binding get() = _binding!!
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val binding = FragmentSyncBinding.bind(view)
+        _binding = FragmentSyncBinding.bind(view)
+        // On délègue la décision au ViewModel (SOLID)
+        //viewModel.checkAndStartSync(requireContext())
+        viewModel.onStartSync(requireContext())
 
-        // On simule une progression visuelle
-        binding.progressBar.isIndeterminate = true
+        // Configuration de la ProgressBar en mode déterminé
+        binding.progressBar.isIndeterminate = false
+        binding.progressBar.max = 100
 
-        // Enregistrement de l'écouteur
-        requireContext().registerReceiver(receiver, IntentFilter("DATA_READY"), Context.RECEIVER_NOT_EXPORTED)
+        // Dans SyncFragment.kt
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.state.collect { state ->
+                    when (state) {
+                        is SyncState.Progress -> {
+                            binding.progressBar.isIndeterminate = false
+                            binding.progressBar.progress = state.percent
+                            binding.textPercent.text = "${state.percent}% - ${state.message}"
+                        }
+                        is SyncState.Finished -> {
+                            // SEULEMENT ICI on navigue
+                            findNavController().navigate(SyncFragmentDirections.toSelection())
+                            SyncRepository.update(SyncState.Idle) // On remet à zéro pour après
+                        }
+                        is SyncState.Error -> {
+                            Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
+                        }
+                        SyncState.Idle -> { /* Rien à faire */ }
+                    }
+                }
+            }
+        }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        requireContext().unregisterReceiver(receiver)
+        _binding = null
     }
 }

@@ -8,6 +8,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.PrimaryKey
 import androidx.room.Query
+import androidx.room.Transaction
 
 @Entity(tableName = "bus_route")
 data class BusRoute(
@@ -67,8 +68,6 @@ interface StarDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertStopTimes(times: List<StopTime>)
 
-    @Query("DELETE FROM bus_route")
-    suspend fun deleteAll()
 
     @Query("SELECT * FROM bus_route")
     fun getAllRoutes(): LiveData<List<BusRoute>>
@@ -84,6 +83,32 @@ interface StarDao {
         GROUP BY s.stop_id ORDER BY st.stop_sequence
     """)
     suspend fun getStops(rId: String, dId: Int): List<Stop>
+    @Query("DELETE FROM bus_route")
+    suspend fun deleteAllRoutes()
+
+    @Query("DELETE FROM stop")
+    suspend fun deleteAllStops()
+
+    @Query("DELETE FROM trip")
+    suspend fun deleteAllTrips()
+
+    @Query("DELETE FROM calendar")
+    suspend fun deleteAllCalendars()
+
+    @Query("DELETE FROM stop_time")
+    suspend fun deleteAllStopTimes()
+
+    @Transaction
+    suspend fun clearAllTables() {
+        deleteAllStopTimes()
+        deleteAllTrips()
+        deleteAllCalendars()
+        deleteAllStops()
+        deleteAllRoutes()
+    }
+
+    @Query("SELECT (SELECT COUNT(*) FROM bus_route) == 0")
+    suspend fun isDatabaseEmpty(): Boolean
 }
 
 data class DirectionInfo(val trip_headsign: String, val direction_id: Int)

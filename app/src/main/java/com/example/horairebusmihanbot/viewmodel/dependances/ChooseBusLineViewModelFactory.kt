@@ -1,4 +1,4 @@
-package com.example.horairebusmihanbot.viewmodel.dependances
+/*package com.example.horairebusmihanbot.viewmodel.dependances
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -22,4 +22,4 @@ class ChooseBusLineViewModelFactory(
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
-}
+}*/

@@ -1,4 +1,4 @@
-package com.example.horairebusmihanbot.ui.components
+/*package com.example.horairebusmihanbot.ui.components
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -73,4 +73,4 @@ fun AppDrawer(
             )
         }
     )
-}
+}*/

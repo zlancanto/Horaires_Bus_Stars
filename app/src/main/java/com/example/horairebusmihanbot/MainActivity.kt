@@ -1,101 +1,47 @@
 package com.example.horairebusmihanbot
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.content.pm.PackageManager
 import android.os.Bundle
-import android.util.Log
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.viewModels
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
-import androidx.lifecycle.lifecycleScope
-import com.example.horairebusmihanbot.ui.screens.ImportScreen
-import com.example.horairebusmihanbot.ui.screens.ScheduleQueryScreen
-import com.example.horairebusmihanbot.ui.theme.HoraireBusMihanBotTheme
-import com.example.horairebusmihanbot.viewmodel.MainViewModele
-import com.example.horairebusmihanbot.viewmodel.dependances.AppContainer
-import com.example.horairebusmihanbot.viewmodel.dependances.AppDataContainer
-import kotlinx.coroutines.launch
-import java.io.File
+import androidx.appcompat.app.AppCompatActivity
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.navigateUp
+import androidx.navigation.ui.setupActionBarWithNavController
+import androidx.navigation.ui.setupWithNavController
+import com.example.horairebusmihanbot.databinding.ActivityMainBinding
 
-class MainActivity : ComponentActivity() {
-
-    // 1. Initialiser le conteneur de dépendances au niveau de l'application
-    private val appContainer: AppContainer by lazy { AppDataContainer(applicationContext) }
-
-    private val viewModel: MainViewModele by viewModels()
+class MainActivity : AppCompatActivity() {
+    private lateinit var binding: ActivityMainBinding
+    private lateinit var appBarConfiguration: AppBarConfiguration
 
     override fun onCreate(savedInstanceState: Bundle?) {
-
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
-                != PackageManager.PERMISSION_GRANTED
-            ) {
-                requestPermissions(
-                    arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
-                    1
-                )
-            }
-            if (checkSelfPermission(android.Manifest.permission.INTERNET)
-                != PackageManager.PERMISSION_GRANTED
-            ) {
-                requestPermissions(
-                    arrayOf(android.Manifest.permission.INTERNET),
-                    1
-                )
-            }
-        }
-
         super.onCreate(savedInstanceState)
-        createNotificationChannel()
 
-        val gtfsFolder = File(filesDir, "gtfs")
-        val stopsFile = File(gtfsFolder, "stops.txt")
-        Log.e("VERIF", " ${stopsFile.exists()}")
-        if (!gtfsFolder.exists() || !stopsFile.exists()) {
-            lifecycleScope.launch {
-                viewModel.clearDatabase()            // attend la fin
-                viewModel.telechargerFichiers()   // attend la fin
-                viewModel.startGtfsImport()          // attend la fin
-            }
-        }
+        // Correction 1 : On utilise la variable de classe, pas une nouvelle variable locale 'val'
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        setContent {
-            HoraireBusMihanBotTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    // Collecter l'état qui détermine si l'importation est terminée
-                    val isImportComplete by viewModel.isImportComplete.collectAsState() // Supposer un Flow<Boolean> dans ViewModel
+        val navHostFragment = supportFragmentManager
+            .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        val navController = navHostFragment.navController
 
-                    if (isImportComplete) {
-                        ScheduleQueryScreen(
-                            busRouteRepository = appContainer.busRouteRepository,
-                            viewModel
-                        )
-                    } else {
-                        ImportScreen(viewModel)
-                    }
-                }
-            }
-        }
+        setSupportActionBar(binding.toolbar)
+
+        // Correction 2 : On initialise la variable de classe 'appBarConfiguration'
+        appBarConfiguration = AppBarConfiguration(
+            navController.graph,
+            binding.drawerLayout
+        )
+
+        setupActionBarWithNavController(navController, appBarConfiguration)
+        binding.navView.setupWithNavController(navController)
     }
 
-    private fun createNotificationChannel() {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                "IMPORT_CHANNEL",
-                "Import",
-                NotificationManager.IMPORTANCE_DEFAULT
-            )
-            val manager = getSystemService(NotificationManager::class.java)
-            manager.createNotificationChannel(channel)
-        }
+    // Cette méthode est cruciale pour que le bouton "Burger" s'ouvre !
+    override fun onSupportNavigateUp(): Boolean {
+        val navHostFragment = supportFragmentManager
+            .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        val navController = navHostFragment.navController
+
+        return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
 }

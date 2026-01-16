@@ -1,4 +1,4 @@
-package com.example.horairebusmihanbot.services
+/*package com.example.horairebusmihanbot.services
 
 import android.content.Context
 import android.content.pm.PackageManager
@@ -220,3 +220,4 @@ class TelechargerFichiersService(private val context: Context) {
     }
 
 }
+*/

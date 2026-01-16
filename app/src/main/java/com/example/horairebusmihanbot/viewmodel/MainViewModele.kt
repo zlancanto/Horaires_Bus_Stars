@@ -1,4 +1,4 @@
-package com.example.horairebusmihanbot.viewmodel
+/*package com.example.horairebusmihanbot.viewmodel
 
 import android.app.Application
 import android.util.Log
@@ -140,4 +140,4 @@ class MainViewModele(application: Application) : AndroidViewModel(application) {
         // Si les fichiers existent, on considère que l'importation est complète
         return gtfsFolder.exists() && tripsFile.exists()
     }
-}
+}*/

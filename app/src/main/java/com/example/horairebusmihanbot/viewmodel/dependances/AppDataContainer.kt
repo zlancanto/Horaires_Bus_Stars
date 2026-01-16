@@ -1,4 +1,4 @@
-package com.example.horairebusmihanbot.viewmodel.dependances
+/*package com.example.horairebusmihanbot.viewmodel.dependances
 
 import android.content.Context
 import com.example.horairebusmihanbot.data.AppDatabase
@@ -28,4 +28,4 @@ class AppDataContainer(private val context: Context) : AppContainer {
             .tripDao(database.tripDao()) // Ajout de la dépendance TripDao
             .build()
     }
-}
+}*/

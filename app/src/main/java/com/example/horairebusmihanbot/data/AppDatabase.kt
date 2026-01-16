@@ -1,47 +1,26 @@
 package com.example.horairebusmihanbot.data
 
-import android.content.Context
 import androidx.room.Database
-import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.example.horairebusmihanbot.data.dao.*
-import com.example.horairebusmihanbot.data.entity.*
+import com.example.horairebusmihanbot.model.*
 
+/**
+ * Patron de conception : Singleton (géré via MainApp)
+ * Cette classe définit la configuration de la base de données Room.
+ */
 @Database(
     entities = [
         BusRoute::class,
-        Calendar::class,
-        Stop::class,
         Trip::class,
-        StopTime::class
+        Stop::class,
+        StopTime::class,
+        Calendar::class
     ],
     version = 1,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
 
-    // DAO exposés pour que les Repositories puissent les utiliser
-    abstract fun busRouteDao(): BusRouteDao
-    abstract fun calendarDao(): CalendarDao
-    abstract fun stopDao(): StopDao
-    abstract fun tripDao(): TripDao
-    abstract fun stopTimeDao(): StopTimeDao
-
-    companion object {
-        @Volatile
-        private var INSTANCE: AppDatabase? = null
-
-        fun getDatabase(context: Context): AppDatabase {
-            return INSTANCE ?: synchronized(this) {
-                val instance = Room.databaseBuilder(
-                    context.applicationContext,
-                    AppDatabase::class.java,
-                    "transport.db"
-                )
-                    .build()
-                INSTANCE = instance
-                instance
-            }
-        }
-    }
+    // Cette fonction permet à l'application d'accéder aux commandes SQL
+    abstract fun starDao(): StarDao
 }

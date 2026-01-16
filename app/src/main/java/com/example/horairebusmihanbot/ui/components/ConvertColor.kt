@@ -1,4 +1,4 @@
-package com.example.horairebusmihanbot.ui.components
+/*package com.example.horairebusmihanbot.ui.components
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -22,4 +22,4 @@ fun gtfsColorToComposeColor(hexColor: String?, defaultColor: Color): Color {
     } catch (_: IllegalArgumentException) {
         defaultColor
     }
-}
+}*/

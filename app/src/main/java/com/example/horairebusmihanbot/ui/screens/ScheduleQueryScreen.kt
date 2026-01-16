@@ -1,4 +1,4 @@
-package com.example.horairebusmihanbot.ui.screens
+/*package com.example.horairebusmihanbot.ui.screens
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
@@ -209,4 +209,4 @@ fun ScheduleQueryScreen(
         snackbarHostState,
         content
     )
-}
+}*/

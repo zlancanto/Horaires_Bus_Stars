@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("com.google.devtools.ksp")
+    id("androidx.navigation.safeargs.kotlin") version "2.9.6"
 }
 
 android {
@@ -60,6 +61,8 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.compose.runtime)
     implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.navigation.fragment.ktx)
+    implementation(libs.androidx.navigation.ui.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -67,13 +70,27 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
-    val room_version = "2.8.4"
-    implementation("androidx.room:room-runtime:$room_version")
-    implementation("androidx.room:room-ktx:$room_version")
-    testImplementation("androidx.room:room-testing:$room_version")
-    ksp("androidx.room:room-compiler:$room_version")
 
-    implementation("com.squareup.okhttp3:okhttp:5.3.2")
+    val roomVersion = "2.8.4"
+    val navVersion = "2.7.7"
+
+    // Room
+    implementation("androidx.room:room-runtime:$roomVersion")
+    implementation("androidx.room:room-ktx:$roomVersion")
+    testImplementation("androidx.room:room-testing:$roomVersion")
+    ksp("androidx.room:room-compiler:$roomVersion")
+
+    // Navigation
+    implementation("androidx.navigation:navigation-fragment-ktx:${navVersion}")
+    implementation("androidx.navigation:navigation-ui-ktx:${navVersion}")
+
+    // Lifecycle & Coroutines
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.17.+" )
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
+
+    // Network
+    implementation("com.squareup.okhttp3:okhttp:5.3.2")
 }

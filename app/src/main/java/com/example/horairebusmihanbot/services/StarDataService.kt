@@ -38,31 +38,31 @@ class StarDataService : Service() {
             // Pour Android 14 (API 34) et plus
             startForeground(
                 NOTIF_ID,
-                buildNotification("Préparation du téléchargement...", 0),
+                buildNotification(getString(R.string.fsync_notif_preparing_the_download), 0),
                 android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
             )
         } else {
             // Pour les versions plus anciennes
-            startForeground(NOTIF_ID, buildNotification("Préparation du téléchargement...", 0))
+            startForeground(NOTIF_ID, buildNotification(getString(R.string.fsync_notif_preparing_the_download), 0))
         }
 
         serviceScope.launch {
             try {
-                SyncRepository.update(SyncState.Progress(0, "Récupération de l'URL..."))
+                SyncRepository.update(SyncState.Progress(0, getString(R.string.fsync_notif_url_retrieval)))
 
                 // ÉTAPE 1 : Récupérer l'URL du ZIP depuis le JSON
                 val jsonResponse = downloadString(API_JSON_URL)
                 val zipUrl = extraireUrlDepuisJson(jsonResponse)
 
                 // ÉTAPE 2 : Télécharger et extraire le ZIP en flux (Streaming)
-                SyncRepository.update(SyncState.Progress(10, "Téléchargement du GTFS..."))
+                SyncRepository.update(SyncState.Progress(10, getString(R.string.fsync_notif_download_GTFS)))
 
                 val request = Request.Builder().url(zipUrl).build()
                 client.newCall(request).execute().use { response ->
-                    if (!response.isSuccessful) throw IOException("Erreur téléchargement ZIP")
+                    if (!response.isSuccessful) throw IOException(getString(R.string.fsync_toast_error_ZIP_download))
 
                     val inputStream = response.body?.byteStream()
-                        ?: throw IOException("Fichier vide")
+                        ?: throw IOException(getString(R.string.fsync_toast_error_file_empty))
 
                     // On passe le flux directement au parseur (Optimal !)
                     processZipStream(inputStream)
@@ -72,7 +72,7 @@ class StarDataService : Service() {
 
             } catch (e: Exception) {
                 Log.e("SYNC_ERROR", "Échec : ${e.message}")
-                SyncRepository.update(SyncState.Error(e.message ?: "Erreur inconnue"))
+                SyncRepository.update(SyncState.Error(e.message ?: getString(R.string.fsync_toast_error_unknown_error)))
             } finally {
                 stopSelf()
             }
@@ -83,7 +83,7 @@ class StarDataService : Service() {
     private fun downloadString(url: String): String {
         val request = Request.Builder().url(url).build()
         return client.newCall(request).execute().use {
-            if (!it.isSuccessful) throw IOException("Erreur JSON")
+            if (!it.isSuccessful) throw IOException(getString(R.string.fsync_toast_error_JSON))
             it.body?.string() ?: ""
         }
     }
@@ -92,7 +92,7 @@ class StarDataService : Service() {
         // Ta logique Jackson qui fonctionnait bien
         val node = mapper.readTree(json)
         return node.firstOrNull()?.get("url")?.asText()
-            ?: throw IOException("URL non trouvée dans le JSON")
+            ?: throw IOException(getString(R.string.fsync_toast_error_url_not_found_in_json))
     }
 
     private suspend fun processZipStream(inputStream: InputStream) {
@@ -101,10 +101,10 @@ class StarDataService : Service() {
         var filesFound = 0
 
         // 1. Notification : Début du remplissage
-        sendSimpleNotification( "Synchronisation", "Fichier ZIP reçu, début de l'importation...")
+        sendSimpleNotification( getString(R.string.fsync_notif_start_of_filling_title), getString(R.string.fsync_notif_start_of_filling_content))
 
         // Nettoyage initial obligatoire
-        SyncRepository.update(SyncState.Progress(15, "Nettoyage de la base de données..."))
+        SyncRepository.update(SyncState.Progress(15, getString(R.string.fsync_notif_db_cleanup)))
         dao.clearAllTables()
 
         zip.use { zis ->
@@ -121,8 +121,8 @@ class StarDataService : Service() {
                     readAndInsertFile(zis, fileName, dao, progress)
 
                     sendSimpleNotification(
-                        "Table synchronisée",
-                        "Fichier $fileName téléchargé avec succès."
+                        getString(R.string.fsync_notif_file_dowloaded_succesfully_title),
+                        fileName + " " + getString(R.string.fsync_notif_file_dowloaded_succesfully_content)
                     )
                 }
                 zis.closeEntry()
@@ -132,11 +132,11 @@ class StarDataService : Service() {
 
         if (filesFound == 0) {
             Log.e("SYNC_ERROR", "Aucun fichier GTFS valide trouvé dans le ZIP")
-            throw IOException("Aucun fichier GTFS valide trouvé dans le ZIP")
+            throw IOException(getString(R.string.fsync_toast_error_gtfs_file_not_found))
         }
 
         SyncRepository.update(SyncState.Progress(100, "Synchronisation terminée !"))
-        sendSimpleNotification("Succès", "La base de données est à jour.")
+        sendSimpleNotification(getString(R.string.fsync_notif_sync_complete_title), getString(R.string.fsync_notif_sync_complete_content))
     }
 
     private suspend fun readAndInsertFile(
@@ -156,7 +156,7 @@ class StarDataService : Service() {
             .forEach { chunk ->
                 insertChunk(fileName, chunk, dao)
                 // Mise à jour de l'état global
-                SyncRepository.update(SyncState.Progress(basePercent, R.string.fsync_importing_msg.toString() + " $fileName..."))
+                SyncRepository.update(SyncState.Progress(basePercent, getString(R.string.fsync_importing_msg) + " $fileName..."))
             }
     }
 
@@ -222,8 +222,8 @@ class StarDataService : Service() {
     private fun sendTableFinishedNotification(tableName: String) {
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.stat_sys_download_done)
-            .setContentTitle("Table synchronisée")
-            .setContentText("Le fichier $tableName a été importé avec succès.")
+            .setContentTitle(getString(R.string.fsync_notif_file_dowloaded_succesfully_title))
+            .setContentText("$tableName ${getString(R.string.fsync_notif_file_dowloaded_succesfully_content)}")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .build()
 

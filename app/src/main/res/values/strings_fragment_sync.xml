@@ -4,4 +4,30 @@
 
     <string name="fsync_downloading_msg">Téléchargement des données STAR...</string>
     <string name="fsync_importing_msg">Importation de </string>
+
+    <!-- Notifications : avant téléchargement -->
+    <string name="fsync_notif_preparing_the_download">Préparation du téléchargement...</string>
+    <string name="fsync_notif_url_retrieval">Récupération de URL...</string>
+    <string name="fsync_notif_download_GTFS">Téléchargement du GTFS...</string>
+
+    <!-- Notifications : pendant téléchargement -->
+    <string name="fsync_notif_start_of_filling_title">Synchronisation</string>
+    <string name="fsync_notif_start_of_filling_content">Fichier ZIP reçu, début importation...</string>
+    <string name="fsync_notif_db_cleanup">Nettoyage de la base de données...</string>
+    <string name="fsync_notif_file_dowloaded_succesfully_content">téléchargé avec succès.</string>
+
+    <!-- Notifications : après téléchargement -->
+    <string name="fsync_notif_sync_complete_title">Synchronisation terminée</string>
+    <string name="fsync_notif_star_data_sync">Synchronisation des données STAR</string>
+    <string name="fsync_notif_sync_complete_content">La base de données est à jour</string>
+    <string name="fsync_notif_file_imported_succesfully_title">Table importée</string>
+    <string name="fsync_notif_file_imported_succesfully_content">importé avec succès</string>
+
+    <!-- Toasts Error -->
+    <string name="fsync_toast_error_ZIP_download">Erreur lors du téléchargement du ZIP</string>
+    <string name="fsync_toast_error_file_empty">Erreur, fichier vide</string>
+    <string name="fsync_toast_error_unknown_error">Erreur incconue</string>
+    <string name="fsync_toast_error_JSON">Erreur JSON</string>
+    <string name="fsync_toast_error_url_not_found_in_json">URL non trouvée dans le JSON</string>
+    <string name="fsync_toast_error_gtfs_file_not_found">Erreur, aucun fichier GTFS valide trouvé dans le ZIP</string>
 </resources>

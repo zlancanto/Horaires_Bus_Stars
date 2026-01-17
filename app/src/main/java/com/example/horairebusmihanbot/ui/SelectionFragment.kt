@@ -93,7 +93,7 @@ class SelectionFragment : Fragment(R.layout.fragment_selection) {
 
                 private fun createPromptView(): View {
                     return TextView(context).apply {
-                        text = R.string.fsel_spinner_subtitle.toString()
+                        text = getString(R.string.fsel_spinner_subtitle)
                         setPadding(15, 15, 15, 15)
                     }
                 }

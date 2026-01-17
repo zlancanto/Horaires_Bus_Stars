@@ -101,9 +101,8 @@ interface StarDao {
             (:day = 'saturday' AND c.saturday = 1) OR
             (:day = 'sunday' AND c.sunday = 1)
         )
-        ORDER BY st.departure_time ASC 
-        LIMIT 15
-""")
+        ORDER BY st.departure_time ASC
+    """)
     suspend fun getNextPassages(
         stopId: String,
         routeId: String,

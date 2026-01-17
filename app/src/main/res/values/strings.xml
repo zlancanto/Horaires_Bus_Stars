@@ -2,5 +2,4 @@
 <resources>
     <string name="app_name" translatable="false">HoraireBusMihanBot</string>
     <string name="menu" translatable="false">Menu</string>
-    <string name="fsync_notif_file_dowloaded_succesfully_title">Table synchronisée</string>
 </resources>

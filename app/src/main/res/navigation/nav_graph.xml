@@ -52,7 +52,16 @@
         android:name="com.example.horairebusmihanbot.ui.ScheduleFragment"
         android:label="@string/fschedule_title">
         <argument
+            android:name="routeId"
+            app:argType="string" />
+        <argument
+            android:name="dirId"
+            app:argType="integer" />
+        <argument
             android:name="stopId"
+            app:argType="string" />
+        <argument
+            android:name="stopName"
             app:argType="string" />
         <action
             android:id="@+id/to_details"

@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="fschedule_title">Horaires de passage</string>
+
+    <string name="fschedule_no_bus_found">Aucun bus trouvé</string>
+    <string name="fschedule_passages_at_a_standstill">Passages à l\'arrêt</string>
+    <string name="fschedule_date_time">Date</string>
 </resources>

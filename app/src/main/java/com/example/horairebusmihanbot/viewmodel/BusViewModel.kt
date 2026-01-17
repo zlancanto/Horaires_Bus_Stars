@@ -3,12 +3,15 @@ package com.example.horairebusmihanbot.viewmodel
 import android.app.Application
 import android.icu.text.SimpleDateFormat
 import android.icu.util.Calendar
+import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.horairebusmihanbot.MainApp
 import com.example.horairebusmihanbot.model.*
+import com.example.horairebusmihanbot.utils.getDayOfWeekColumn
 import com.example.horairebusmihanbot.utils.isSameDay
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -41,7 +44,8 @@ class BusViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun setSelectedDate(timeInMillis: Long) {
-        val current = _selectedDateTime.value ?: Calendar.getInstance()
+        val now = Calendar.getInstance()
+        val current = _selectedDateTime.value ?: now
         val newDate = Calendar.getInstance().apply { this.timeInMillis = timeInMillis }
 
         current.set(Calendar.YEAR, newDate.get(Calendar.YEAR))
@@ -51,7 +55,6 @@ class BusViewModel(application: Application) : AndroidViewModel(application) {
         _selectedDateTime.value = current
     }
 
-    // Dans BusViewModel.kt
     fun setSelectedTime(hour: Int, minute: Int) {
         val now = Calendar.getInstance()
         val current = _selectedDateTime.value ?: now
@@ -96,13 +99,19 @@ class BusViewModel(application: Application) : AndroidViewModel(application) {
         val dayColumn = getDayOfWeekColumn(calendar)
 
         viewModelScope.launch {
-            _stopTimes.value = dao.getNextPassages(
-                stopId,
-                routeId,
-                directionId,
-                currentTimeStr,
-                dayColumn
-            )
+            try {
+                val result = dao.getNextPassages(
+                    stopId,
+                    routeId,
+                    directionId,
+                    currentTimeStr,
+                    dayColumn
+                )
+                _stopTimes.postValue(result)
+            } catch (e: Exception) {
+                Log.e("BusViewModel", "Erreur SQL : ${e.message}")
+                _stopTimes.postValue(emptyList())
+            }
         }
     }
 
@@ -111,18 +120,5 @@ class BusViewModel(application: Application) : AndroidViewModel(application) {
      */
     fun getSelectedTimestamp(): Long {
         return _selectedDateTime.value?.timeInMillis ?: System.currentTimeMillis()
-    }
-
-    private fun getDayOfWeekColumn(calendar: Calendar): String {
-        return when (calendar.get(Calendar.DAY_OF_WEEK)) {
-            Calendar.MONDAY -> "monday"
-            Calendar.TUESDAY -> "tuesday"
-            Calendar.WEDNESDAY -> "wednesday"
-            Calendar.THURSDAY -> "thursday"
-            Calendar.FRIDAY -> "friday"
-            Calendar.SATURDAY -> "saturday"
-            Calendar.SUNDAY -> "sunday"
-            else -> "monday"
-        }
     }
 }

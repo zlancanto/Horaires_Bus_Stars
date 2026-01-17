@@ -17,6 +17,7 @@ class StopsFragment : Fragment(R.layout.fragment_stops) {
     private val args: StopsFragmentArgs by navArgs()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         val binding = FragmentStopsBinding.bind(view)
 
         viewModel.loadStops(args.routeId, args.dirId)
@@ -34,9 +35,15 @@ class StopsFragment : Fragment(R.layout.fragment_stops) {
                 }
             })
 
+            // Navigation vers les horaires de passage
             binding.listStops.setOnItemClickListener { _, _, i, _ ->
                 val stop = stops[i]
-                val action = StopsFragmentDirections.toSchedule(stop.stop_id)
+                val action = StopsFragmentDirections.toSchedule(
+                    routeId = args.routeId,
+                    dirId = args.dirId,
+                    stopId = stop.stop_id,
+                    stopName = stop.stop_name
+                )
                 findNavController().navigate(action)
             }
         }

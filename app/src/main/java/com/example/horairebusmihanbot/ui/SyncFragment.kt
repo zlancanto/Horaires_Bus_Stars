@@ -25,8 +25,7 @@ class SyncFragment : Fragment(R.layout.fragment_sync) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentSyncBinding.bind(view)
         // On délègue la décision au ViewModel (SOLID)
-        //viewModel.checkAndStartSync(requireContext())
-        viewModel.onStartSync(requireContext())
+        viewModel.checkAndStartSync(requireContext())
 
         // Configuration de la ProgressBar en mode déterminé
         binding.progressBar.isIndeterminate = false

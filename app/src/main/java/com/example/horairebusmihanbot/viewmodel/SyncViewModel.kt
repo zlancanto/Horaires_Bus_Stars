@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.horairebusmihanbot.MainApp
 import com.example.horairebusmihanbot.repository.SyncRepository
+import com.example.horairebusmihanbot.repository.SyncState
 import com.example.horairebusmihanbot.services.StarDataService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -13,8 +14,6 @@ import kotlinx.coroutines.withContext
 
 class SyncViewModel : ViewModel() {
     val state = SyncRepository.state
-    val progress = SyncRepository.progress
-    val isDataReady = SyncRepository.isDataReady
 
     /**
      * Vérifie si les données existent déjà.
@@ -29,22 +28,13 @@ class SyncViewModel : ViewModel() {
             }
 
             if (isEmpty) {
-                // Lancement du Service (Pattern Command)
+                SyncRepository.update(SyncState.Idle)
                 val intent = Intent(context, StarDataService::class.java)
                 context.startForegroundService(intent)
             } else {
                 // Si les données sont déjà là, on informe le Repository pour naviguer
-                SyncRepository.setDataReady(true)
+                SyncRepository.update(SyncState.Finished)
             }
         }
-    }
-
-    fun onStartSync(context: Context) {
-        // 1. On s'assure que l'état est à "false" avant de commencer
-        SyncRepository.setDataReady(false)
-
-        // 2. Lancement du service
-        val intent = Intent(context, StarDataService::class.java)
-        context.startForegroundService(intent)
     }
 }

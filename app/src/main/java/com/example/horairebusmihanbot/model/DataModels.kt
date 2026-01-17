@@ -83,6 +83,35 @@ interface StarDao {
         GROUP BY s.stop_id ORDER BY st.stop_sequence
     """)
     suspend fun getStops(rId: String, dId: Int): List<Stop>
+
+    @Query("""
+        SELECT st.* FROM stop_time st
+        INNER JOIN trip t ON st.trip_id = t.trip_id
+        INNER JOIN calendar c ON t.service_id = c.service_id
+        WHERE st.stop_id = :stopId 
+        AND t.route_id = :routeId 
+        AND t.direction_id = :directionId
+        AND st.departure_time >= :currentTime
+        AND (
+            (:day = 'monday' AND c.monday = 1) OR
+            (:day = 'tuesday' AND c.tuesday = 1) OR
+            (:day = 'wednesday' AND c.wednesday = 1) OR
+            (:day = 'thursday' AND c.thursday = 1) OR
+            (:day = 'friday' AND c.friday = 1) OR
+            (:day = 'saturday' AND c.saturday = 1) OR
+            (:day = 'sunday' AND c.sunday = 1)
+        )
+        ORDER BY st.departure_time ASC 
+        LIMIT 15
+""")
+    suspend fun getNextPassages(
+        stopId: String,
+        routeId: String,
+        directionId: Int,
+        currentTime: String, // Format "HH:mm:ss"
+        day: String          // ex: "monday"
+    ): List<StopTime>
+
     @Query("DELETE FROM bus_route")
     suspend fun deleteAllRoutes()
 

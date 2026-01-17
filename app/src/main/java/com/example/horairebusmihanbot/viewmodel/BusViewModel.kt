@@ -1,16 +1,23 @@
 package com.example.horairebusmihanbot.viewmodel
 
 import android.app.Application
+import android.icu.text.SimpleDateFormat
+import android.icu.util.Calendar
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.horairebusmihanbot.MainApp
 import com.example.horairebusmihanbot.model.*
+import com.example.horairebusmihanbot.utils.isSameDay
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 class BusViewModel(application: Application) : AndroidViewModel(application) {
     private val dao = MainApp.database.starDao()
+
+    private val _selectedDateTime = MutableLiveData<Calendar>()
+    val selectedDateTime: LiveData<Calendar> = _selectedDateTime
 
     // Données observées par les fragments
     val allRoutes: LiveData<List<BusRoute>> = dao.getAllRoutes()
@@ -21,7 +28,53 @@ class BusViewModel(application: Application) : AndroidViewModel(application) {
     private val _stops = MutableLiveData<List<Stop>>()
     val stops: LiveData<List<Stop>> = _stops
 
+    private val _selectedRoute = MutableLiveData<BusRoute?>(null)
+    val selectedRoute: LiveData<BusRoute?> = _selectedRoute
+
+    private val _stopTimes = MutableLiveData<List<StopTime>>()
+    val stopTimes: LiveData<List<StopTime>> = _stopTimes
+
     // Fonctions appelées par les fragments
+
+    fun setSelectedRoute(route: BusRoute?) {
+        _selectedRoute.value = route
+    }
+
+    fun setSelectedDate(timeInMillis: Long) {
+        val current = _selectedDateTime.value ?: Calendar.getInstance()
+        val newDate = Calendar.getInstance().apply { this.timeInMillis = timeInMillis }
+
+        current.set(Calendar.YEAR, newDate.get(Calendar.YEAR))
+        current.set(Calendar.MONTH, newDate.get(Calendar.MONTH))
+        current.set(Calendar.DAY_OF_MONTH, newDate.get(Calendar.DAY_OF_MONTH))
+
+        _selectedDateTime.value = current
+    }
+
+    // Dans BusViewModel.kt
+    fun setSelectedTime(hour: Int, minute: Int) {
+        val now = Calendar.getInstance()
+        val current = _selectedDateTime.value ?: now
+
+        // Création d'un calendrier de test
+        val testCal = (current.clone() as Calendar).apply {
+            set(Calendar.HOUR_OF_DAY, hour)
+            set(Calendar.MINUTE, minute)
+        }
+
+        // Validation : Si c'est aujourd'hui et que c'est avant maintenant, on refuse
+        if (isSameDay(testCal, now) && testCal.before(now)) {
+            // On force l'heure actuelle
+            current.set(Calendar.HOUR_OF_DAY, now.get(Calendar.HOUR_OF_DAY))
+            current.set(Calendar.MINUTE, now.get(Calendar.MINUTE))
+        } else {
+            current.set(Calendar.HOUR_OF_DAY, hour)
+            current.set(Calendar.MINUTE, minute)
+        }
+
+        _selectedDateTime.value = current
+    }
+
     fun loadDirections(routeId: String) {
         viewModelScope.launch {
             _directions.value = dao.getDirections(routeId)
@@ -31,6 +84,45 @@ class BusViewModel(application: Application) : AndroidViewModel(application) {
     fun loadStops(routeId: String, dirId: Int) {
         viewModelScope.launch {
             _stops.value = dao.getStops(routeId, dirId)
+        }
+    }
+
+    fun loadNextPassages(routeId: String, stopId: String, directionId: Int) {
+        val calendar = _selectedDateTime.value ?: Calendar.getInstance()
+
+        // Formatage pour la base de données
+        val sdf = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+        val currentTimeStr = sdf.format(calendar.time)
+        val dayColumn = getDayOfWeekColumn(calendar)
+
+        viewModelScope.launch {
+            _stopTimes.value = dao.getNextPassages(
+                stopId,
+                routeId,
+                directionId,
+                currentTimeStr,
+                dayColumn
+            )
+        }
+    }
+
+    /**
+     * Helper pour récupérer le timestamp final nécessaire aux requêtes SQL
+     */
+    fun getSelectedTimestamp(): Long {
+        return _selectedDateTime.value?.timeInMillis ?: System.currentTimeMillis()
+    }
+
+    private fun getDayOfWeekColumn(calendar: Calendar): String {
+        return when (calendar.get(Calendar.DAY_OF_WEEK)) {
+            Calendar.MONDAY -> "monday"
+            Calendar.TUESDAY -> "tuesday"
+            Calendar.WEDNESDAY -> "wednesday"
+            Calendar.THURSDAY -> "thursday"
+            Calendar.FRIDAY -> "friday"
+            Calendar.SATURDAY -> "saturday"
+            Calendar.SUNDAY -> "sunday"
+            else -> "monday"
         }
     }
 }

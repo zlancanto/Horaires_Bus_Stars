@@ -7,6 +7,7 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.example.horairebusmihanbot.MainApp
+import com.example.horairebusmihanbot.R
 import com.example.horairebusmihanbot.model.*
 import com.example.horairebusmihanbot.repository.SyncRepository
 import com.example.horairebusmihanbot.repository.SyncState
@@ -15,15 +16,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.IOException
 import java.io.InputStream
-import java.util.concurrent.TimeUnit
-import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
 class StarDataService : Service() {
@@ -101,21 +98,32 @@ class StarDataService : Service() {
     private suspend fun processZipStream(inputStream: InputStream) {
         val dao = MainApp.database.starDao()
         val zip = ZipInputStream(inputStream)
-
         var filesFound = 0
 
+        // 1. Notification : Début du remplissage
+        sendSimpleNotification( "Synchronisation", "Fichier ZIP reçu, début de l'importation...")
+
         // Nettoyage initial obligatoire
+        SyncRepository.update(SyncState.Progress(15, "Nettoyage de la base de données..."))
         dao.clearAllTables()
 
         zip.use { zis ->
             var entry = zis.nextEntry
             while (entry != null) {
-                if (entry.name in FILES_TO_PROCESS) {
+                val fileName = entry.name
+                if (fileName in FILES_TO_PROCESS) {
                     filesFound++
-                    val basePercent = (filesFound * 100) / FILES_TO_PROCESS.size
+                    val progress = 20 + (filesFound * 75 / FILES_TO_PROCESS.size)
 
-                    // Lecture optimisée ligne par ligne
-                    readAndInsertFile(zis, entry.name, dao, basePercent)
+                    SyncRepository.update(SyncState.Progress(progress, "Traitement de $fileName..."))
+
+                    // Appel de la fonction de lecture ligne par ligne (déjà vue ensemble)
+                    readAndInsertFile(zis, fileName, dao, progress)
+
+                    sendSimpleNotification(
+                        "Table synchronisée",
+                        "Fichier $fileName téléchargé avec succès."
+                    )
                 }
                 zis.closeEntry()
                 entry = zis.nextEntry
@@ -126,6 +134,9 @@ class StarDataService : Service() {
             Log.e("SYNC_ERROR", "Aucun fichier GTFS valide trouvé dans le ZIP")
             throw IOException("Aucun fichier GTFS valide trouvé dans le ZIP")
         }
+
+        SyncRepository.update(SyncState.Progress(100, "Synchronisation terminée !"))
+        sendSimpleNotification("Succès", "La base de données est à jour.")
     }
 
     private suspend fun readAndInsertFile(
@@ -133,7 +144,7 @@ class StarDataService : Service() {
         fileName: String,
         dao: StarDao,
         basePercent: Int
-    ) { // On force l'exécution sur le pool IO
+    ) {
 
         val reader = zip.bufferedReader() // Extension plus propre
         val header = reader.readLine() ?: return
@@ -158,6 +169,18 @@ class StarDataService : Service() {
             "calendar.txt" -> dao.insertCalendars(lines.map { parseCalendar(it) })
             "stop_times.txt" -> dao.insertStopTimes(lines.map { parseStopTime(it) })
         }
+    }
+
+    private fun sendSimpleNotification(title: String, text: String) {
+        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notification) // Ton icône
+            .setContentTitle(title)
+            .setContentText(text)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .build()
+
+        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        manager.notify(System.currentTimeMillis().toInt() and 0xfffffff, notification)
     }
 
     // --- LOGIQUE DE PARSING (Clean Code : Une fonction par responsabilité) ---

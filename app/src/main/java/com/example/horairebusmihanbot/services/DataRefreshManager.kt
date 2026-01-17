@@ -19,10 +19,10 @@ class DataRefreshManager(private val context: Context) {
 
     fun showRefreshDialog(navController: NavController) {
         MaterialAlertDialogBuilder(context)
-            .setTitle("Réinitialisation")
-            .setMessage("Voulez-vous supprimer les données locales et recommencer la synchronisation ?")
-            .setNegativeButton("Annuler", null)
-            .setPositiveButton("Confirmer") { _, _ ->
+            .setTitle(R.string.db_refresh_dialogue_title)
+            .setMessage(R.string.db_refresh_dialogue_content)
+            .setNegativeButton(R.string.db_refresh_dialogue_cancel, null)
+            .setPositiveButton(R.string.db_refresh_dialogue_confirm) { _, _ ->
                 performReset(navController)
             }
             .show()

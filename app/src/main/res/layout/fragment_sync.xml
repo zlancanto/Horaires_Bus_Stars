@@ -10,7 +10,7 @@
         android:id="@+id/status_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Téléchargement des données STAR..."
+        android:text="@string/fsync_downloading_msg"
         android:textSize="18sp"
         android:layout_marginBottom="20dp" />
 

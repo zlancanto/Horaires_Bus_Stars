@@ -156,7 +156,7 @@ class StarDataService : Service() {
             .forEach { chunk ->
                 insertChunk(fileName, chunk, dao)
                 // Mise à jour de l'état global
-                SyncRepository.update(SyncState.Progress(basePercent, "Importation de $fileName..."))
+                SyncRepository.update(SyncState.Progress(basePercent, R.string.fsync_importing_msg.toString() + " $fileName..."))
             }
     }
 

@@ -3,5 +3,5 @@
     <item
         android:id="@+id/refresh_database"
         android:icon="@android:drawable/ic_menu_delete"
-        android:title="Effacer et re-télécharger la base" />
+        android:title="@string/db_refresh_title" />
 </menu>

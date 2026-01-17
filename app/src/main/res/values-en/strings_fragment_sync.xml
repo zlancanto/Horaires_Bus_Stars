@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="fsync_title">Data download</string>
+    <string name="fsync_downloading_msg">Downloading STAR data...</string>
+    <string name="fsync_importing_msg">"Importing "</string>
 </resources>

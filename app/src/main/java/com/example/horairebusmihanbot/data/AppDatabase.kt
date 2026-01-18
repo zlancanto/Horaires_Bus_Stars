@@ -43,10 +43,11 @@ abstract class AppDatabase : RoomDatabase() {
 
     @Transaction
     suspend fun clearAllData() {
-        routeDao().deleteAllRoutes()
-        stopDao().deleteAllStops()
-        tripDao().deleteAllTrips()
+        // L'ordre de suppresion est très important !
         stopTimeDao().deleteAllStopTimes()
+        tripDao().deleteAllTrips()
         calendarDao().deleteAllCalendars()
+        stopDao().deleteAllStops()
+        routeDao().deleteAllRoutes()
     }
 }

@@ -139,7 +139,7 @@ class SelectionFragment : Fragment(R.layout.fragment_selection) {
             binding.listDirections.setOnItemClickListener { _, _, i, _ ->
                 val route = binding.spinnerBus.selectedItem as? BusRoute
                 route?.let {
-                    val action = SelectionFragmentDirections.Companion.toStops(it.routeId, dirs[i].directionId)
+                    val action = SelectionFragmentDirections.toStops(it.routeId, dirs[i].directionId)
                     findNavController().navigate(action)
                 }
             }
@@ -149,7 +149,7 @@ class SelectionFragment : Fragment(R.layout.fragment_selection) {
     private fun updateDateTimeDisplay(binding: FragmentSelectionBinding, cal: Calendar) {
         val sdfDate = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
         val sdfTime = SimpleDateFormat("HH:mm", Locale.getDefault())
-        binding.btnDate.text = getString(R.string.fsel_choose_date_title) + " : ${sdfDate.format(cal.time)}"
-        binding.btnTime.text = getString(R.string.fsel_choose_hour_title) + " : ${sdfTime.format(cal.time)}"
+        binding.btnDate.text = "${getString(R.string.fsel_choose_date_title)} : ${sdfDate.format(cal.time)}"
+        binding.btnTime.text = "${getString(R.string.fsel_choose_hour_title)} : ${sdfTime.format(cal.time)}"
     }
 }

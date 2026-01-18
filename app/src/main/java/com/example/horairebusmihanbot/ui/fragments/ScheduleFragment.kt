@@ -45,8 +45,8 @@ class ScheduleFragment : Fragment(R.layout.fragment_schedule) {
             else {
                 val dateTime = viewModel.selectedDateTime.value ?: Calendar.getInstance()
                 val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                binding.stopDateTime.text = getString(R.string.fschedule_date_time) + " : ${sdf.format(dateTime)}"
-                binding.stopNameTitle.text = getString(R.string.fschedule_passages_at_a_standstill) + " : ${args.stopName}"
+                binding.stopDateTime.text = "${getString(R.string.fschedule_date_time)} : ${sdf.format(dateTime)}"
+                binding.stopNameTitle.text = "${getString(R.string.fschedule_passages_at_a_standstill)} : ${args.stopName}"
 
                 // On transforme les objets StopTime en chaînes de caractères lisibles
                 val displayTimes = passages.map { it.departureTime }
@@ -65,7 +65,7 @@ class ScheduleFragment : Fragment(R.layout.fragment_schedule) {
         binding.listTimes.setOnItemClickListener { _, _, position, _ ->
             val selectedPassage = viewModel.stopTimes.value?.get(position)
             selectedPassage?.let {
-                val action = ScheduleFragmentDirections.Companion.toDetails(
+                val action = ScheduleFragmentDirections.toDetails(
                     tripId = it.tripId,
                     stopSequence = it.stopSequence
                 )

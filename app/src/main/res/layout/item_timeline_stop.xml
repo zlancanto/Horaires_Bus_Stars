@@ -31,7 +31,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:text="08:45"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toEndOf="@id/timeline_dot"
@@ -44,7 +43,6 @@
         android:layout_marginStart="12dp"
         android:paddingTop="16dp"
         android:paddingBottom="16dp"
-        android:text="Nom de l'arrêt"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/text_time"
         app:layout_constraintTop_toTopOf="parent" />

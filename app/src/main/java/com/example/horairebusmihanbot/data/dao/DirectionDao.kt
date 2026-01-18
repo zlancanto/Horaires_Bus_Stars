@@ -6,6 +6,6 @@ import com.example.horairebusmihanbot.data.dto.DirectionDto
 
 @Dao
 interface DirectionDao {
-    @Query("SELECT DISTINCT tripHeadsign, directionId FROM trip WHERE routeId = :routeId")
+    @Query("SELECT tripHeadsign, directionId FROM trip WHERE routeId = :routeId")
     suspend fun getDirections(routeId: String): List<DirectionDto>
 }

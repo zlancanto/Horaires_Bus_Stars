@@ -152,7 +152,7 @@ class StarDataService : Service() {
     ) {
 
         val reader = zip.bufferedReader() // Extension plus propre
-        val header = reader.readLine() ?: return
+        reader.readLine() ?: return
 
         // On utilise une séquence pour traiter ligne par ligne sans saturer la RAM
         reader.lineSequence()
@@ -220,25 +220,6 @@ class StarDataService : Service() {
         // Regex qui gère les virgules entre guillemets
         return line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)".toRegex())
             .map { it.trim().removeSurrounding("\"") }
-    }
-
-    // --- NOTIFICATIONS ---
-
-    private fun sendTableFinishedNotification(tableName: String) {
-        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.stat_sys_download_done)
-            .setContentTitle(getString(R.string.fsync_notif_file_dowloaded_succesfully_title))
-            .setContentText("$tableName ${getString(R.string.fsync_notif_file_dowloaded_succesfully_content)}")
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .build()
-
-        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        manager.notify(tableName.hashCode(), notification)
-    }
-
-    private fun updateMainNotification(text: String, progress: Int) {
-        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        manager.notify(NOTIF_ID, buildNotification(text, progress))
     }
 
     private fun buildNotification(text: String, progress: Int) = NotificationCompat.Builder(this, CHANNEL_ID)

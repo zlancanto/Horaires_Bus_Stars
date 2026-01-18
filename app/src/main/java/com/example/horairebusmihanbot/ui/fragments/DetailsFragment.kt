@@ -40,7 +40,7 @@ class DetailsFragment : Fragment(R.layout.fragment_details) {
             timelineAdapter.submitList(details)
             if (!details.isNullOrEmpty()) {
                 val direction = details.last()
-                binding.tripDetailsDirection.text = getString(R.string.fstops_sel_direction) + " : ${direction.stopName}"
+                binding.tripDetailsDirection.text = "${getString(R.string.fstops_sel_direction)} : ${direction.stopName}"
             }
         }
     }

@@ -8,7 +8,7 @@ import androidx.core.content.ContextCompat
 
 object PermissionManager {
 
-    // Liste des permissions nécessaires (extensible)
+    // Liste des permissions nécessaires
     val requiredPermissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         arrayOf(Manifest.permission.POST_NOTIFICATIONS)
     } else {

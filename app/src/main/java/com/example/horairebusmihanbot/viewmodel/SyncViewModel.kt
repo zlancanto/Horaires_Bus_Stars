@@ -8,12 +8,9 @@ import com.example.horairebusmihanbot.MainApp
 import com.example.horairebusmihanbot.repository.SyncRepository
 import com.example.horairebusmihanbot.state.SyncState
 import com.example.horairebusmihanbot.services.StarDataService
-import com.example.horairebusmihanbot.state.SyncInfo
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class SyncViewModel : ViewModel() {
     private val repository = MainApp.repository
@@ -29,7 +26,7 @@ class SyncViewModel : ViewModel() {
     fun checkAndStartSync(context: Context) {
         viewModelScope.launch {
             // On vérifie en arrière-plan (Dispatchers.IO) pour ne pas figer l'UI
-            val isEmpty = SyncInfo.lastSyncTimestamp == null
+            val isEmpty = repository.database.isDatabaseEmpty()
 
             if (isEmpty) {
                 SyncRepository.update(SyncState.Idle)

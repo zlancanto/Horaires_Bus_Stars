@@ -31,24 +31,19 @@ class DataRefreshManager(private val context: Context) {
     private fun performReset(navController: NavController) {
         var msg: String
 
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(Dispatchers.Main).launch {
             try {
-                // 1. Nettoyage
-                database.clearAllTables()
-
-                // 2. Reset de l'état
-                SyncRepository.update(SyncState.Idle)
-
-                // 3. UI sur le thread principal
-                withContext(Dispatchers.Main) {
-                    navController.navigate(R.id.action_global_to_sync)
+                // On exécute la suppression sur le thread IO via le repository
+                withContext(Dispatchers.IO) {
+                    database.clearAllData()
+                    SyncRepository.update(SyncState.Idle)
                 }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    msg = context.getString(R.string.db_refresh_error_delete)
-                    Log.e("DataRefreshManager", "Erreur lors du nettoyage", e)
-                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-                }
+                navController.navigate(R.id.action_global_to_sync)
+            }
+            catch (e: Exception) {
+                msg = context.getString(R.string.db_refresh_error_delete)
+                Log.e("DataRefreshManager", "Erreur lors du nettoyage", e)
+                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
             }
         }
     }

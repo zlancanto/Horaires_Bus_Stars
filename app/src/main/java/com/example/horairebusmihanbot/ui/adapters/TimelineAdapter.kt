@@ -25,7 +25,7 @@ class TimelineAdapter : RecyclerView.Adapter<TimelineAdapter.TimelineViewHolder>
 
     override fun onBindViewHolder(holder: TimelineViewHolder, position: Int) {
         val stop = stops[position]
-        holder.bind(stop, position == 0, position == stops.size - 1)
+        holder.bind(stop)
     }
 
     override fun getItemCount() = stops.size
@@ -35,7 +35,7 @@ class TimelineAdapter : RecyclerView.Adapter<TimelineAdapter.TimelineViewHolder>
         private val name: TextView = itemView.findViewById(R.id.text_stop_name)
         private val line: View = itemView.findViewById(R.id.timeline_line)
 
-        fun bind(stop: StopTimeWithLabelDto, isFirst: Boolean, isLast: Boolean) {
+        fun bind(stop: StopTimeWithLabelDto) {
             time.text = stop.departureTime
             name.text = stop.stopName
 

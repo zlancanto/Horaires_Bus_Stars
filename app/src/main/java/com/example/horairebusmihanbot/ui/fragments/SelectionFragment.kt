@@ -14,6 +14,7 @@ import com.example.horairebusmihanbot.viewmodel.BusViewModel
 import androidx.core.graphics.toColorInt
 import com.example.horairebusmihanbot.data.entities.BusRoute
 import java.util.Locale
+import androidx.core.view.isVisible
 
 class SelectionFragment : Fragment(R.layout.fragment_selection) {
     private val viewModel: BusViewModel by activityViewModels()
@@ -35,10 +36,10 @@ class SelectionFragment : Fragment(R.layout.fragment_selection) {
 
         // 1. Toggles d'affichage
         binding.btnDate.setOnClickListener {
-            binding.datePicker.visibility = if (binding.datePicker.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+            binding.datePicker.visibility = if (binding.datePicker.isVisible) View.GONE else View.VISIBLE
         }
         binding.btnTime.setOnClickListener {
-            binding.timePicker.visibility = if (binding.timePicker.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+            binding.timePicker.visibility = if (binding.timePicker.isVisible) View.GONE else View.VISIBLE
         }
 
         // 2. Listeners (Envoi vers ViewModel)

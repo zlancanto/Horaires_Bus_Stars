@@ -5,6 +5,6 @@ import androidx.room.Query
 
 @Dao
 interface DatabaseDao {
-    @Query("SELECT (SELECT COUNT(*) FROM stop) <= 0")
+    @Query("SELECT (SELECT COUNT(*) FROM stop) <= 20")
     suspend fun isDatabaseEmpty(): Boolean
 }

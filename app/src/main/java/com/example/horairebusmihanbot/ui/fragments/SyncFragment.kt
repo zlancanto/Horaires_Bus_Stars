@@ -33,31 +33,10 @@ class SyncFragment : Fragment(R.layout.fragment_sync) {
         binding.progressBar.isIndeterminate = false
         binding.progressBar.max = 100
 
-        // Dans SyncFragment.kt
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect { state ->
-                    when (state) {
-                        is SyncState.Progress -> {
-                            binding.progressBar.isIndeterminate = false
-                            binding.progressBar.progress = state.percent
-                            binding.textPercent.text = "${state.percent}% - ${state.message}"
-                        }
-                        is SyncState.Finished -> {
-                            findNavController().navigate(SyncFragmentDirections.toSelection())
-                            SyncRepository.update(SyncState.Idle) // On remet à zéro pour après
-                        }
-                        is SyncState.Error -> {
-                            Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
-                        }
-                        SyncState.Idle -> { /* Rien à faire */ }
-                    }
-                }
-            }
-        }
+        setupObservers()
     }
 
-    /*private fun setupObservers() {
+    private fun setupObservers() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 // 1. Observer l'état de l'interface (UI State)
@@ -101,7 +80,7 @@ class SyncFragment : Fragment(R.layout.fragment_sync) {
             findNavController().navigate(SyncFragmentDirections.toSelection())
             SyncRepository.update(SyncState.Idle)
         }
-    }*/
+    }
 
     override fun onDestroyView() {
         super.onDestroyView()

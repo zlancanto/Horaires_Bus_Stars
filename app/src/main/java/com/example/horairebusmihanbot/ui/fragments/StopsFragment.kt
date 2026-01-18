@@ -38,7 +38,7 @@ class StopsFragment : Fragment(R.layout.fragment_stops) {
             // Navigation vers les horaires de passage
             binding.listStops.setOnItemClickListener { _, _, i, _ ->
                 val stop = stops[i]
-                val action = StopsFragmentDirections.Companion.toSchedule(
+                val action = StopsFragmentDirections.toSchedule(
                     routeId = args.routeId,
                     dirId = args.dirId,
                     stopId = stop.stopId,

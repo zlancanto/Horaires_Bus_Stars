@@ -1,4 +1,4 @@
-package com.example.horairebusmihanbot.ui
+package com.example.horairebusmihanbot.ui.fragments
 
 import android.icu.text.SimpleDateFormat
 import android.icu.util.Calendar
@@ -10,9 +10,9 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.example.horairebusmihanbot.R
 import com.example.horairebusmihanbot.databinding.FragmentSelectionBinding
-import com.example.horairebusmihanbot.model.BusRoute
 import com.example.horairebusmihanbot.viewmodel.BusViewModel
 import androidx.core.graphics.toColorInt
+import com.example.horairebusmihanbot.data.entities.BusRoute
 import java.util.Locale
 
 class SelectionFragment : Fragment(R.layout.fragment_selection) {
@@ -83,11 +83,11 @@ class SelectionFragment : Fragment(R.layout.fragment_selection) {
                     val item = getItem(pos) ?: return createPromptView()
                     val v = conv ?: LayoutInflater.from(context).inflate(R.layout.row_bus, parent, false)
                     v.findViewById<TextView>(R.id.bus_badge).apply {
-                        text = item.route_short_name
-                        setBackgroundColor("#${item.route_color}".toColorInt())
-                        setTextColor("#${item.route_text_color}".toColorInt())
+                        text = item.routeShortName
+                        setBackgroundColor("#${item.routeColor}".toColorInt())
+                        setTextColor("#${item.routeTextColor}".toColorInt())
                     }
-                    v.findViewById<TextView>(R.id.bus_name).text = item.route_long_name
+                    v.findViewById<TextView>(R.id.bus_name).text = item.routeLongName
                     return v
                 }
 
@@ -110,7 +110,7 @@ class SelectionFragment : Fragment(R.layout.fragment_selection) {
 
             // Restauration de la sélection
             viewModel.selectedRoute.value?.let { savedRoute ->
-                val position = routes.indexOfFirst { it.route_id == savedRoute.route_id }
+                val position = routes.indexOfFirst { it.routeId == savedRoute.routeId }
                 if (position >= 0) binding.spinnerBus.setSelection(position + 1)
             }
         }
@@ -121,7 +121,7 @@ class SelectionFragment : Fragment(R.layout.fragment_selection) {
                 viewModel.setSelectedRoute(route)
 
                 if (route != null) {
-                    viewModel.loadDirections(route.route_id)
+                    viewModel.loadDirections(route.routeId)
                     binding.listDirections.visibility = View.VISIBLE
                 } else {
                     binding.listDirections.visibility = View.GONE
@@ -134,12 +134,12 @@ class SelectionFragment : Fragment(R.layout.fragment_selection) {
             binding.listDirections.adapter = ArrayAdapter(
                 requireContext(),
                 android.R.layout.simple_list_item_1,
-                dirs.map { it.trip_headsign }
+                dirs.map { it.tripHeadsign }
             )
             binding.listDirections.setOnItemClickListener { _, _, i, _ ->
                 val route = binding.spinnerBus.selectedItem as? BusRoute
                 route?.let {
-                    val action = SelectionFragmentDirections.toStops(it.route_id, dirs[i].direction_id)
+                    val action = SelectionFragmentDirections.Companion.toStops(it.routeId, dirs[i].directionId)
                     findNavController().navigate(action)
                 }
             }

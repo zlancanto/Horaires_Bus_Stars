@@ -4,30 +4,32 @@ import android.app.Application
 import android.icu.text.SimpleDateFormat
 import android.icu.util.Calendar
 import android.util.Log
-import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.horairebusmihanbot.MainApp
-import com.example.horairebusmihanbot.dto.StopTimeWithLabelDto
-import com.example.horairebusmihanbot.model.*
+import com.example.horairebusmihanbot.data.dto.DirectionDto
+import com.example.horairebusmihanbot.data.dto.StopTimeWithLabelDto
+import com.example.horairebusmihanbot.data.entities.BusRoute
+import com.example.horairebusmihanbot.data.entities.Stop
+import com.example.horairebusmihanbot.data.entities.StopTime
 import com.example.horairebusmihanbot.utils.getDayOfWeekColumn
 import com.example.horairebusmihanbot.utils.isSameDay
 import kotlinx.coroutines.launch
 import java.util.Locale
 
 class BusViewModel(application: Application) : AndroidViewModel(application) {
-    private val dao = MainApp.database.starDao()
+    private val repository = MainApp.repository
 
     private val _selectedDateTime = MutableLiveData<Calendar>()
     val selectedDateTime: LiveData<Calendar> = _selectedDateTime
 
     // Données observées par les fragments
-    val allRoutes: LiveData<List<BusRoute>> = dao.getAllRoutes()
+    val allRoutes: LiveData<List<BusRoute>> = repository.routes.getAllRoutes()
 
-    private val _directions = MutableLiveData<List<DirectionInfo>>()
-    val directions: LiveData<List<DirectionInfo>> = _directions
+    private val _directions = MutableLiveData<List<DirectionDto>>()
+    val directions: LiveData<List<DirectionDto>> = _directions
 
     private val _stops = MutableLiveData<List<Stop>>()
     val stops: LiveData<List<Stop>> = _stops
@@ -84,19 +86,19 @@ class BusViewModel(application: Application) : AndroidViewModel(application) {
 
     fun loadDirections(routeId: String) {
         viewModelScope.launch {
-            _directions.value = dao.getDirections(routeId)
+            _directions.value = repository.directions.getDirections(routeId)
         }
     }
 
     fun loadStops(routeId: String, dirId: Int) {
         viewModelScope.launch {
-            _stops.value = dao.getStops(routeId, dirId)
+            _stops.value = repository.stops.getStops(routeId, dirId)
         }
     }
 
     fun loadTripDetails(tripId: String, stopSequence: Int) {
         viewModelScope.launch {
-            _tripDetails.value = dao.getTripDetails(tripId, stopSequence)
+            _tripDetails.value = repository.trips.getTripDetails(tripId, stopSequence)
         }
     }
 
@@ -110,7 +112,7 @@ class BusViewModel(application: Application) : AndroidViewModel(application) {
 
         viewModelScope.launch {
             try {
-                val result = dao.getNextPassages(
+                val result = repository.stopTimes.getNextPassages(
                     stopId,
                     routeId,
                     directionId,
@@ -123,12 +125,5 @@ class BusViewModel(application: Application) : AndroidViewModel(application) {
                 _stopTimes.postValue(emptyList())
             }
         }
-    }
-
-    /**
-     * Helper pour récupérer le timestamp final nécessaire aux requêtes SQL
-     */
-    fun getSelectedTimestamp(): Long {
-        return _selectedDateTime.value?.timeInMillis ?: System.currentTimeMillis()
     }
 }

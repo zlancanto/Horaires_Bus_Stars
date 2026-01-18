@@ -1,8 +1,7 @@
-package com.example.horairebusmihanbot.ui
+package com.example.horairebusmihanbot.ui.fragments
 
 import android.os.Bundle
 import android.view.View
-import android.widget.ArrayAdapter
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.LiveData
@@ -11,7 +10,7 @@ import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.horairebusmihanbot.R
 import com.example.horairebusmihanbot.databinding.FragmentDetailsBinding
-import com.example.horairebusmihanbot.dto.StopTimeWithLabelDto
+import com.example.horairebusmihanbot.data.dto.StopTimeWithLabelDto
 import com.example.horairebusmihanbot.ui.adapters.TimelineAdapter
 import com.example.horairebusmihanbot.viewmodel.BusViewModel
 
@@ -41,7 +40,7 @@ class DetailsFragment : Fragment(R.layout.fragment_details) {
             timelineAdapter.submitList(details)
             if (!details.isNullOrEmpty()) {
                 val direction = details.last()
-                binding.tripDetailsDirection.text = getString(R.string.fstops_sel_direction) + " : ${direction.stop_name}"
+                binding.tripDetailsDirection.text = getString(R.string.fstops_sel_direction) + " : ${direction.stopName}"
             }
         }
     }

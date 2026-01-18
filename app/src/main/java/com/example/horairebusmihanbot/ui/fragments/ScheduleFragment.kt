@@ -1,4 +1,4 @@
-package com.example.horairebusmihanbot.ui
+package com.example.horairebusmihanbot.ui.fragments
 
 import android.icu.text.SimpleDateFormat
 import android.icu.util.Calendar
@@ -49,7 +49,7 @@ class ScheduleFragment : Fragment(R.layout.fragment_schedule) {
                 binding.stopNameTitle.text = getString(R.string.fschedule_passages_at_a_standstill) + " : ${args.stopName}"
 
                 // On transforme les objets StopTime en chaînes de caractères lisibles
-                val displayTimes = passages.map { it.departure_time }
+                val displayTimes = passages.map { it.departureTime }
 
                 val adapter = ArrayAdapter(
                     requireContext(),
@@ -65,9 +65,9 @@ class ScheduleFragment : Fragment(R.layout.fragment_schedule) {
         binding.listTimes.setOnItemClickListener { _, _, position, _ ->
             val selectedPassage = viewModel.stopTimes.value?.get(position)
             selectedPassage?.let {
-                val action = ScheduleFragmentDirections.toDetails(
-                    tripId = it.trip_id,
-                    stopSequence = it.stop_sequence
+                val action = ScheduleFragmentDirections.Companion.toDetails(
+                    tripId = it.tripId,
+                    stopSequence = it.stopSequence
                 )
                 findNavController().navigate(action)
             }

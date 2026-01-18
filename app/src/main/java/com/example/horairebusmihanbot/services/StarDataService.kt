@@ -8,9 +8,14 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.example.horairebusmihanbot.MainApp
 import com.example.horairebusmihanbot.R
-import com.example.horairebusmihanbot.model.*
+import com.example.horairebusmihanbot.data.entities.BusRoute
+import com.example.horairebusmihanbot.data.entities.Calendar
+import com.example.horairebusmihanbot.data.entities.Stop
+import com.example.horairebusmihanbot.data.entities.StopTime
+import com.example.horairebusmihanbot.data.entities.Trip
+import com.example.horairebusmihanbot.repository.StarRepository
 import com.example.horairebusmihanbot.repository.SyncRepository
-import com.example.horairebusmihanbot.repository.SyncState
+import com.example.horairebusmihanbot.state.SyncState
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -27,6 +32,8 @@ class StarDataService : Service() {
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val client = OkHttpClient()
     private val mapper = jacksonObjectMapper()
+    private val database = MainApp.database
+    private val repository = MainApp.repository
     private val NOTIF_ID = 1
     private val CHANNEL_ID = "star_sync_channel"
     val API_JSON_URL = "https://data.explore.star.fr/api/explore/v2.1/catalog/datasets/tco-busmetro-horaires-gtfs-versions-td/exports/json?lang=fr&timezone=Europe%2FBerlin"
@@ -96,7 +103,6 @@ class StarDataService : Service() {
     }
 
     private suspend fun processZipStream(inputStream: InputStream) {
-        val dao = MainApp.database.starDao()
         val zip = ZipInputStream(inputStream)
         var filesFound = 0
 
@@ -105,7 +111,7 @@ class StarDataService : Service() {
 
         // Nettoyage initial obligatoire
         SyncRepository.update(SyncState.Progress(15, getString(R.string.fsync_notif_db_cleanup)))
-        dao.clearAllTables()
+        database.clearAllTables()
 
         zip.use { zis ->
             var entry = zis.nextEntry
@@ -118,7 +124,7 @@ class StarDataService : Service() {
                     SyncRepository.update(SyncState.Progress(progress, "Traitement de $fileName..."))
 
                     // Appel de la fonction de lecture ligne par ligne (déjà vue ensemble)
-                    readAndInsertFile(zis, fileName, dao, progress)
+                    readAndInsertFile(zis, fileName, progress)
 
                     sendSimpleNotification(
                         getString(R.string.fsync_notif_file_dowloaded_succesfully_title),
@@ -142,7 +148,6 @@ class StarDataService : Service() {
     private suspend fun readAndInsertFile(
         zip: ZipInputStream,
         fileName: String,
-        dao: StarDao,
         basePercent: Int
     ) {
 
@@ -154,20 +159,20 @@ class StarDataService : Service() {
             .filter { it.isNotBlank() }
             .chunked(1000)
             .forEach { chunk ->
-                insertChunk(fileName, chunk, dao)
+                insertChunk(fileName, chunk)
                 // Mise à jour de l'état global
                 SyncRepository.update(SyncState.Progress(basePercent, getString(R.string.fsync_importing_msg) + " $fileName..."))
             }
     }
 
-    private suspend fun insertChunk(fileName: String, lines: List<String>, dao: StarDao) {
+    private suspend fun insertChunk(fileName: String, lines: List<String>) {
         // Pattern Strategy : On délègue le parsing selon le fichier
         when (fileName) {
-            "routes.txt" -> dao.insertRoutes(lines.map { parseRoute(it) })
-            "stops.txt" -> dao.insertStops(lines.map { parseStop(it) })
-            "trips.txt" -> dao.insertTrips(lines.map { parseTrip(it) })
-            "calendar.txt" -> dao.insertCalendars(lines.map { parseCalendar(it) })
-            "stop_times.txt" -> dao.insertStopTimes(lines.map { parseStopTime(it) })
+            "routes.txt" -> repository.routes.insertRoutes(lines.map { parseRoute(it) })
+            "stops.txt" -> repository.stops.insertStops(lines.map { parseStop(it) })
+            "trips.txt" -> repository.trips.insertTrips(lines.map { parseTrip(it) })
+            "calendar.txt" -> repository.calendar.insertCalendars(lines.map { parseCalendar(it) })
+            "stop_times.txt" -> repository.stopTimes.insertStopTimes(lines.map { parseStopTime(it) })
         }
     }
 

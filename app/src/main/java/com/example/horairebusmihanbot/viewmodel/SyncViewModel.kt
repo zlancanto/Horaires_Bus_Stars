@@ -6,13 +6,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.horairebusmihanbot.MainApp
 import com.example.horairebusmihanbot.repository.SyncRepository
-import com.example.horairebusmihanbot.repository.SyncState
+import com.example.horairebusmihanbot.state.SyncState
 import com.example.horairebusmihanbot.services.StarDataService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class SyncViewModel : ViewModel() {
+    private val repository = MainApp.repository
     val state = SyncRepository.state
 
     /**
@@ -24,7 +25,7 @@ class SyncViewModel : ViewModel() {
             // On vérifie en arrière-plan (Dispatchers.IO) pour ne pas figer l'UI
             val isEmpty = withContext(Dispatchers.IO) {
                 // On vérifie par exemple si la table des routes est vide
-                MainApp.database.starDao().isDatabaseEmpty()
+                repository.database.isDatabaseEmpty()
             }
 
             if (isEmpty) {

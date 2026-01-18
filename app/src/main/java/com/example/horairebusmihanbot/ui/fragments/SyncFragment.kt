@@ -1,4 +1,4 @@
-package com.example.horairebusmihanbot.ui
+package com.example.horairebusmihanbot.ui.fragments
 
 import android.os.Bundle
 import android.view.View
@@ -12,7 +12,7 @@ import androidx.navigation.fragment.findNavController
 import com.example.horairebusmihanbot.R
 import com.example.horairebusmihanbot.databinding.FragmentSyncBinding
 import com.example.horairebusmihanbot.repository.SyncRepository
-import com.example.horairebusmihanbot.repository.SyncState
+import com.example.horairebusmihanbot.state.SyncState
 import com.example.horairebusmihanbot.viewmodel.SyncViewModel
 import kotlinx.coroutines.launch
 
@@ -42,8 +42,7 @@ class SyncFragment : Fragment(R.layout.fragment_sync) {
                             binding.textPercent.text = "${state.percent}% - ${state.message}"
                         }
                         is SyncState.Finished -> {
-                            // SEULEMENT ICI on navigue
-                            findNavController().navigate(SyncFragmentDirections.toSelection())
+                            findNavController().navigate(SyncFragmentDirections.Companion.toSelection())
                             SyncRepository.update(SyncState.Idle) // On remet à zéro pour après
                         }
                         is SyncState.Error -> {

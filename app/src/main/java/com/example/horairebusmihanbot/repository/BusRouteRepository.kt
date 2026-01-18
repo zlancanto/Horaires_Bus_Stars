@@ -1,11 +1,15 @@
-/*package com.example.horairebusmihanbot.repository
+package com.example.horairebusmihanbot.repository
 
-import com.example.horairebusmihanbot.data.entity.BusRoute
-import kotlinx.coroutines.flow.Flow
+import com.example.horairebusmihanbot.data.AppDatabase
+import com.example.horairebusmihanbot.data.entities.BusRoute
 
-interface BusRouteRepository {
-    suspend fun insertAll(routes: List<BusRoute>)
-    suspend fun deleteAll()
-    fun getAllAsFlow(): Flow<List<BusRoute>>
-    suspend fun getDirectionsByRoute(routeId: String): List<String>
-}*/
+class BusRouteRepository(private val db: AppDatabase) {
+    private val routeDao = db.routeDao()
+
+    suspend fun insertRoutes(routes: List<BusRoute>) = routeDao.insertRoutes(routes)
+
+    fun getAllRoutes() = routeDao.getAllRoutes()
+
+    suspend fun deleteAllRoutes() = routeDao.deleteAllRoutes()
+
+}

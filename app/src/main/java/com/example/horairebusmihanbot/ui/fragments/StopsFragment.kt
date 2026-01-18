@@ -1,4 +1,4 @@
-package com.example.horairebusmihanbot.ui
+package com.example.horairebusmihanbot.ui.fragments
 
 import android.os.Bundle
 import android.view.View
@@ -23,7 +23,7 @@ class StopsFragment : Fragment(R.layout.fragment_stops) {
         viewModel.loadStops(args.routeId, args.dirId)
 
         viewModel.stops.observe(viewLifecycleOwner) { stops ->
-            val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, stops.map { it.stop_name })
+            val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, stops.map { it.stopName })
             binding.listStops.adapter = adapter
 
             // Recherche
@@ -38,11 +38,11 @@ class StopsFragment : Fragment(R.layout.fragment_stops) {
             // Navigation vers les horaires de passage
             binding.listStops.setOnItemClickListener { _, _, i, _ ->
                 val stop = stops[i]
-                val action = StopsFragmentDirections.toSchedule(
+                val action = StopsFragmentDirections.Companion.toSchedule(
                     routeId = args.routeId,
                     dirId = args.dirId,
-                    stopId = stop.stop_id,
-                    stopName = stop.stop_name
+                    stopId = stop.stopId,
+                    stopName = stop.stopName
                 )
                 findNavController().navigate(action)
             }

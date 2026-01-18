@@ -1,5 +1,6 @@
 package com.example.horairebusmihanbot.repository
 
+import com.example.horairebusmihanbot.state.SyncState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 

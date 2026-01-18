@@ -7,7 +7,7 @@ import androidx.navigation.NavController
 import com.example.horairebusmihanbot.MainApp
 import com.example.horairebusmihanbot.R
 import com.example.horairebusmihanbot.repository.SyncRepository
-import com.example.horairebusmihanbot.repository.SyncState
+import com.example.horairebusmihanbot.state.SyncState
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class DataRefreshManager(private val context: Context) {
-    private val dao = MainApp.database.starDao()
+    private val database = MainApp.database
 
     fun showRefreshDialog(navController: NavController) {
         MaterialAlertDialogBuilder(context)
@@ -29,11 +29,14 @@ class DataRefreshManager(private val context: Context) {
     }
 
     private fun performReset(navController: NavController) {
-        // On utilise un scope lié à l'application ou au manager pour ne pas être coupé
+        var msg: String
+
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 // 1. Nettoyage
-                dao.clearAllTables()
+                database.clearAllTables()
+                msg = context.getString(R.string.db_refresh_msg_db_deleted_successfully)
+                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
 
                 // 2. Reset de l'état
                 SyncRepository.update(SyncState.Idle)
@@ -44,8 +47,9 @@ class DataRefreshManager(private val context: Context) {
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
+                    msg = context.getString(R.string.db_refresh_error_delete)
                     Log.e("DataRefreshManager", "Erreur lors du nettoyage", e)
-                    Toast.makeText(context, "Erreur lors de la suppression", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
                 }
             }
         }

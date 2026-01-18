@@ -5,4 +5,6 @@
     <string name="db_refresh_dialogue_content">Are you sure you want to delete the data and re-download the database?</string>
     <string name="db_refresh_dialogue_confirm">Confirm</string>
     <string name="db_refresh_dialogue_cancel">Cancel</string>
+    <string name="db_refresh_error_delete">Error while resetting data</string>
+    <string name="db_refresh_msg_db_deleted_successfully">Database successfully deleted</string>
 </resources>

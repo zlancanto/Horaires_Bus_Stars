@@ -1,4 +1,4 @@
-package com.example.horairebusmihanbot.repository
+package com.example.horairebusmihanbot.state
 
 sealed class SyncState {
     object Idle : SyncState()

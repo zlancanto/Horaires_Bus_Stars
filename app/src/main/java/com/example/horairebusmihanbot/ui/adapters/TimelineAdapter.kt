@@ -6,7 +6,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.horairebusmihanbot.R
-import com.example.horairebusmihanbot.dto.StopTimeWithLabelDto
+import com.example.horairebusmihanbot.data.dto.StopTimeWithLabelDto
 
 class TimelineAdapter : RecyclerView.Adapter<TimelineAdapter.TimelineViewHolder>() {
 
@@ -36,8 +36,8 @@ class TimelineAdapter : RecyclerView.Adapter<TimelineAdapter.TimelineViewHolder>
         private val line: View = itemView.findViewById(R.id.timeline_line)
 
         fun bind(stop: StopTimeWithLabelDto, isFirst: Boolean, isLast: Boolean) {
-            time.text = stop.departure_time
-            name.text = stop.stop_name
+            time.text = stop.departureTime
+            name.text = stop.stopName
 
             // Logique de design : cacher les bouts de ligne inutiles
             line.visibility = View.VISIBLE

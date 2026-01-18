@@ -13,8 +13,8 @@ import com.example.horairebusmihanbot.data.entities.Calendar
 import com.example.horairebusmihanbot.data.entities.Stop
 import com.example.horairebusmihanbot.data.entities.StopTime
 import com.example.horairebusmihanbot.data.entities.Trip
-import com.example.horairebusmihanbot.repository.StarRepository
 import com.example.horairebusmihanbot.repository.SyncRepository
+import com.example.horairebusmihanbot.state.SyncInfo
 import com.example.horairebusmihanbot.state.SyncState
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import kotlinx.coroutines.CoroutineScope
@@ -27,6 +27,7 @@ import okhttp3.Request
 import java.io.IOException
 import java.io.InputStream
 import java.util.zip.ZipInputStream
+
 
 class StarDataService : Service() {
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -75,6 +76,7 @@ class StarDataService : Service() {
                     processZipStream(inputStream)
                 }
 
+                SyncInfo.lastSyncTimestamp = android.icu.util.Calendar.getInstance()
                 SyncRepository.update(SyncState.Finished)
 
             } catch (e: Exception) {

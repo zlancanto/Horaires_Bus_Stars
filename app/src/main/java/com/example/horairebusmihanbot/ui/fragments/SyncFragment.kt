@@ -25,7 +25,9 @@ class SyncFragment : Fragment(R.layout.fragment_sync) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentSyncBinding.bind(view)
         // On délègue la décision au ViewModel (SOLID)
-        viewModel.checkAndStartSync(requireContext())
+        if (viewModel.state.value is SyncState.Idle) {
+            viewModel.checkAndStartSync(requireContext())
+        }
 
         // Configuration de la ProgressBar en mode déterminé
         binding.progressBar.isIndeterminate = false
@@ -42,7 +44,7 @@ class SyncFragment : Fragment(R.layout.fragment_sync) {
                             binding.textPercent.text = "${state.percent}% - ${state.message}"
                         }
                         is SyncState.Finished -> {
-                            findNavController().navigate(SyncFragmentDirections.Companion.toSelection())
+                            findNavController().navigate(SyncFragmentDirections.toSelection())
                             SyncRepository.update(SyncState.Idle) // On remet à zéro pour après
                         }
                         is SyncState.Error -> {
@@ -54,6 +56,52 @@ class SyncFragment : Fragment(R.layout.fragment_sync) {
             }
         }
     }
+
+    /*private fun setupObservers() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                // 1. Observer l'état de l'interface (UI State)
+                launch {
+                    viewModel.state.collect { state ->
+                        updateUI(state)
+                    }
+                }
+
+                // 2. Observer l'événement de navigation (Single Event Pattern)
+                // SharedFlow garantit que l'événement n'est consommé qu'une fois
+                launch {
+                    viewModel.navigationEvent.collect {
+                        navigateToSelection()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun updateUI(state: SyncState) {
+        when (state) {
+            is SyncState.Progress -> {
+                binding.progressBar.isIndeterminate = false
+                binding.progressBar.progress = state.percent
+                binding.textPercent.text = "${state.percent}% - ${state.message}"
+            }
+            is SyncState.Finished -> {
+                navigateToSelection()
+            }
+            is SyncState.Error -> {
+                Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
+            }
+            SyncState.Idle -> { /* On ne fait rien */ }
+        }
+    }
+
+    private fun navigateToSelection() {
+        // On vérifie si on est toujours sur ce fragment avant de naviguer
+        if (findNavController().currentDestination?.id == R.id.fragment_sync) {
+            findNavController().navigate(SyncFragmentDirections.toSelection())
+            SyncRepository.update(SyncState.Idle)
+        }
+    }*/
 
     override fun onDestroyView() {
         super.onDestroyView()

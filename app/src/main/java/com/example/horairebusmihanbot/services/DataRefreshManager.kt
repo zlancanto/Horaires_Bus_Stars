@@ -35,8 +35,6 @@ class DataRefreshManager(private val context: Context) {
             try {
                 // 1. Nettoyage
                 database.clearAllTables()
-                msg = context.getString(R.string.db_refresh_msg_db_deleted_successfully)
-                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
 
                 // 2. Reset de l'état
                 SyncRepository.update(SyncState.Idle)

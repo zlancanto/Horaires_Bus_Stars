@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="fsel_title">Choice of bus line</string>
+    <string name="fsel_choose_date">Select a date</string>
+    <string name="fsel_choose_hour">Select a time</string>
+    <string name="fsel_choose_date_title">Date</string>
+    <string name="fsel_choose_hour_title">Hour</string>
+    <string name="fsel_spinner_title">Bus line :</string>
+    <string name="fsel_spinner_subtitle">Select a line...</string>
+    <string name="fsel_list_view">Directions available :</string>
+</resources>

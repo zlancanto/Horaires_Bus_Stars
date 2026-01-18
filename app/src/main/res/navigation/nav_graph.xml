@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/fragment_sync">
+
+    <action
+        android:id="@+id/action_global_to_sync"
+        app:destination="@id/fragment_sync"
+        app:popUpTo="@id/nav_graph"
+        app:popUpToInclusive="true" />
+
+    <fragment
+        android:id="@+id/fragment_sync"
+        android:name="com.example.horairebusmihanbot.ui.fragments.SyncFragment"
+        android:label="@string/fsync_title">
+        <action
+            android:id="@+id/to_selection"
+            app:destination="@id/fragment_selection"
+            app:popUpTo="@id/fragment_sync"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/fragment_selection"
+        android:name="com.example.horairebusmihanbot.ui.fragments.SelectionFragment"
+        android:label="@string/fsel_title">
+        <action
+            android:id="@+id/to_stops"
+            app:destination="@id/fragment_stops"
+            app:enterAnim="@anim/slide_in_right" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/fragment_stops"
+        android:name="com.example.horairebusmihanbot.ui.fragments.StopsFragment"
+        android:label="@string/fstop_title">
+        <argument
+            android:name="routeId"
+            app:argType="string" />
+        <argument
+            android:name="dirId"
+            app:argType="integer" />
+        <action
+            android:id="@+id/to_schedule"
+            app:destination="@id/fragment_schedule"
+            app:enterAnim="@anim/slide_in_right" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/fragment_schedule"
+        android:name="com.example.horairebusmihanbot.ui.fragments.ScheduleFragment"
+        android:label="@string/fschedule_title">
+        <argument
+            android:name="routeId"
+            app:argType="string" />
+        <argument
+            android:name="dirId"
+            app:argType="integer" />
+        <argument
+            android:name="stopId"
+            app:argType="string" />
+        <argument
+            android:name="stopName"
+            app:argType="string" />
+        <action
+            android:id="@+id/to_details"
+            app:destination="@id/fragment_details"
+            app:enterAnim="@anim/slide_in_right" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/fragment_details"
+        android:name="com.example.horairebusmihanbot.ui.fragments.DetailsFragment"
+        android:label="@string/fstops_sel_title">
+        <argument
+            android:name="tripId"
+            app:argType="string" />
+        <argument
+            android:name="stopSequence"
+            app:argType="integer" />
+    </fragment>
+</navigation>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="db_refresh_title">Effacer et re-télécharger la BD</string>
+    <string name="db_refresh_dialogue_title">Réinitialisation</string>
+    <string name="db_refresh_dialogue_content">Etes-vous sûr de vouloir supprimer les données et re-télécharger la base de données ?</string>
+    <string name="db_refresh_dialogue_confirm">Confirmer</string>
+    <string name="db_refresh_dialogue_cancel">Annuler</string>
+
+    <!-- Error -->
+    <string name="db_refresh_error_delete">Erreur lors de la réinitialisation des données</string>
+    <!-- Msg -->
+    <string name="db_refresh_msg_db_deleted_successfully">Base de données supprimée avec succès</string>
+</resources>

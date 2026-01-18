@@ -1,246 +1,128 @@
 package com.example.horairebusmihanbot
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.viewModels
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.unit.dp
-import androidx.lifecycle.lifecycleScope
-import com.example.horairebusmihanbot.ui.theme.HoraireBusMihanBotTheme
-import kotlinx.coroutines.launch
-import java.io.File
-import kotlin.math.roundToInt
+import android.view.Menu
+import android.view.MenuItem
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
+import androidx.navigation.NavController
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.navigateUp
+import androidx.navigation.ui.setupActionBarWithNavController
+import androidx.navigation.ui.setupWithNavController
+import com.example.horairebusmihanbot.databinding.ActivityMainBinding
+import com.example.horairebusmihanbot.services.DataRefreshManager
+import com.example.horairebusmihanbot.services.PermissionManager
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
 
-    private val viewModel: MainViewModele by viewModels()
+    private lateinit var binding: ActivityMainBinding
+    private lateinit var appBarConfiguration: AppBarConfiguration
+    private lateinit var navController: NavController
+    private lateinit var refreshManager: DataRefreshManager
+
+    private var isSyncFragment = false
+
+    // Pattern Facade : Encapsule la complexité des permissions
+    private val requestPermissionsLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val allGranted = permissions.entries.all { it.value }
+        if (!allGranted) {
+            Log.w("PERM", "Certaines permissions ont été refusées par l'utilisateur.")
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
-                != PackageManager.PERMISSION_GRANTED
-            ) {
-                requestPermissions(
-                    arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
-                    1
-                )
-            }
-            if (checkSelfPermission(android.Manifest.permission.INTERNET)
-                != PackageManager.PERMISSION_GRANTED
-            ) {
-                requestPermissions(
-                    arrayOf(android.Manifest.permission.INTERNET),
-                    1
-                )
-            }
-        }
-
-        fun createNotificationChannel() {
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                val channel = NotificationChannel(
-                    "IMPORT_CHANNEL",
-                    "Import",
-                    NotificationManager.IMPORTANCE_DEFAULT
-                )
-                val manager = getSystemService(NotificationManager::class.java)
-                manager.createNotificationChannel(channel)
-            }
-        }
-
         super.onCreate(savedInstanceState)
-        createNotificationChannel()
-        val gtfsFolder = File(filesDir, "gtfs")
-        val stopsFile = File(gtfsFolder, "stops.txt")
-        Log.e("VERIF", " ${stopsFile.exists()}")
-        if (!gtfsFolder.exists() || !stopsFile.exists()) {
 
-            lifecycleScope.launch {
-                viewModel.clearDatabase()            // attend la fin
-                viewModel.telechargerFichiersval()   // attend la fin
-                viewModel.startGtfsImport()          // attend la fin
+        // 1. Initialisation de la vue (Binding)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        // 2. Initialisation des composants techniques
+        setupNavigation()
+        setupPermissions()
+        refreshManager = DataRefreshManager(this)
+    }
+
+    /**
+     * Centralise la configuration de la navigation.
+     * Respecte le principe de "Single Responsibility" (S de SOLID).
+     */
+    private fun setupNavigation() {
+        // Récupération propre du NavController
+        val navHostFragment = supportFragmentManager
+            .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        navController = navHostFragment.navController
+
+        // Toolbar setup
+        setSupportActionBar(binding.toolbar)
+
+        // AppBarConfiguration :
+        // - Définit les destinations racines (sans bouton "retour")
+        // - Lie le DrawerLayout pour gérer l'icône burger
+        appBarConfiguration = AppBarConfiguration(
+            setOf(),
+            binding.drawerLayout
+        )
+
+        // Synchronisation automatique de la Toolbar et du Titre avec le NavGraph
+        setupActionBarWithNavController(navController, appBarConfiguration)
+        binding.navView.setupWithNavController(navController)
+
+        // Observer sur les changements de destination (Pattern Observer)
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            isSyncFragment = destination.id == R.id.fragment_sync
+
+            // LOGIQUE DE VISIBILITÉ DU BURGER/BACK
+            // Si vous voulez masquer complètement l'icône de navigation sur ces vues :
+            if (destination.id == R.id.fragment_sync || destination.id == R.id.fragment_selection) {
+                supportActionBar?.setDisplayHomeAsUpEnabled(false) // Masque l'icône (burger ou back)
+            } else {
+                supportActionBar?.setDisplayHomeAsUpEnabled(true)
             }
-            }
-            setContent {
-                HoraireBusMihanBotTheme {
-                    Surface(
-                        modifier = Modifier.fillMaxSize(),
-                        color = MaterialTheme.colorScheme.background
-                    ) {
-                        ImportScreen(viewModel)
-                    }
-                }
-            }
+
+            invalidateOptionsMenu()
         }
     }
 
-    @OptIn(ExperimentalMaterial3Api::class)
-    @Composable
-    fun ImportScreen(viewModel: MainViewModele) {
-
-        val progress by viewModel.importProgress.collectAsState()
-        val isImporting by viewModel.isImporting.collectAsState()
-        val databaseCleared by viewModel.databaseCleared.collectAsState()
-
-        var isMenuEnabled by remember { mutableStateOf(true) }
-
-        LaunchedEffect(isImporting) {
-            if (!isImporting) isMenuEnabled = true
-        }
-
-        val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-        val scope = rememberCoroutineScope()
-
-        // Fonction utilitaire : empêche le clic si désactivé
-        fun lockClick(action: () -> Unit) {
-            if (isMenuEnabled) {
-                isMenuEnabled = false
-                action()
-            }
-        }
-
-        ModalNavigationDrawer(
-            drawerState = drawerState,
-            drawerContent = {
-                ModalDrawerSheet {
-
-                    Spacer(Modifier.height(24.dp))
-                    Text(
-                        "Menu",
-                        modifier = Modifier.padding(16.dp),
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                    // Retélécharger la base
-                    NavigationDrawerItem(
-                        label = { Text("Retélécharger la base") },
-                        selected = false,
-                        modifier = Modifier.alpha(if (isMenuEnabled) 1f else 0.5f),
-                        onClick = {
-                            lockClick {
-                                scope.launch {
-                                    drawerState.close()
-                                    viewModel.clearDatabase()            // attend la fin
-                                    viewModel.telechargerFichiersval()
-                                    // attend la fin
-                                    viewModel.startGtfsImport()
-                                }
-                            }
-                        }
-                    )
-                    // Importer les données
-                    NavigationDrawerItem(
-                        label = { Text("Importer les données") },
-                        selected = false,
-                        modifier = Modifier.alpha(if (isMenuEnabled) 1f else 0.5f),
-                        onClick = {
-                            lockClick {
-                                scope.launch { drawerState.close()
-                                    viewModel.startGtfsImport()
-                                }
-                            }
-                        }
-                    )
-
-                    // Vider la base
-                    NavigationDrawerItem(
-                        label = { Text("Vider la base de données") },
-                        selected = false,
-                        modifier = Modifier.alpha(if (isMenuEnabled) 1f else 0.5f),
-                        onClick = {
-                            lockClick {
-                                scope.launch { drawerState.close()
-                                    viewModel.clearDatabase()
-                                }
-                                isMenuEnabled = true // Action rapide
-                            }
-                        }
-                    )
-
-                    // Télécharger les données
-                    NavigationDrawerItem(
-                        label = { Text("Télécharger les fichiers") },
-                        selected = false,
-                        modifier = Modifier.alpha(if (isMenuEnabled) 1f else 0.5f),
-                        onClick = {
-                            lockClick {
-                                scope.launch { drawerState.close()
-                                    viewModel.telechargerFichiersval()
-                                }
-                                isMenuEnabled = true // Action rapide
-                            }
-                        }
-                    )
-                }
-            }
-        ) {
-            Scaffold(
-                topBar = {
-                    TopAppBar(
-                        title = { Text("Horaire Bus Mihan") },
-                        navigationIcon = {
-                            IconButton(
-                                onClick = { scope.launch { drawerState.open() } }
-                            ) {
-                                Icon(Icons.Default.Menu, contentDescription = "Menu")
-                            }
-                        }
-                    )
-                }
-            ) { padding ->
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding)
-                        .padding(24.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-
-                    if (isImporting) {
-                        Box(contentAlignment = Alignment.Center) {
-                            CircularProgressIndicator(
-                                progress = { progress },
-                                modifier = Modifier.size(100.dp),
-                                strokeWidth = 8.dp
-                            )
-                            Text(
-                                text = "${(progress * 100).roundToInt()}%",
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                        }
-                        Spacer(Modifier.height(16.dp))
-                        Text("Importation des données...")
-                        Text("Veuillez patienter", style = MaterialTheme.typography.bodySmall)
-
-                    } else if (progress >= 1f) {
-                        Text(
-                            "Importation terminée avec succès !",
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-
-                    if (databaseCleared) {
-                        Spacer(Modifier.height(24.dp))
-                        Text(
-                            text = "Base de données vidée avec succès !",
-                            color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-                }
-            }
+    private fun setupPermissions() {
+        if (!PermissionManager.hasAllPermissions(this)) {
+            requestPermissionsLauncher.launch(PermissionManager.requiredPermissions)
         }
     }
+
+    // --- GESTION DU MENU ---
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        // Gonfle le menu (le bouton de refresh par exemple)
+        menuInflater.inflate(R.menu.drawer_menu, menu)
+        return true
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu): Boolean {
+        // Masque le bouton de rafraîchissement si on est déjà en cours de synchro
+        menu.findItem(R.id.refresh_database)?.isVisible = !isSyncFragment
+        return super.onPrepareOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.refresh_database -> {
+                refreshManager.showRefreshDialog(navController)
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    /**
+     * Gère la navigation retour et l'ouverture du Drawer.
+     */
+    override fun onSupportNavigateUp(): Boolean {
+        return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
+    }
+}

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="fstops_sel_title">Arrêts du trajet choisi</string>
+
+    <string name="fstops_sel_direction">Directions</string>
+    <string name="fstops_sel_stops">Arrêts :</string>
+</resources>

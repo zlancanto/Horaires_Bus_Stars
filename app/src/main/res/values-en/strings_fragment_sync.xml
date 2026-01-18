@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="fsync_title">Data download</string>
+    <string name="fsync_downloading_msg">Downloading STAR data...</string>
+    <string name="fsync_importing_msg">"Importing "</string>
+    <string name="fsync_notif_preparing_the_download">Preparing download...</string>
+    <string name="fsync_notif_url_retrieval">Retrieving URL...</string>
+    <string name="fsync_notif_download_GTFS">Downloading GTFS...</string>
+    <string name="fsync_notif_start_of_filling_title">Synchronization</string>
+    <string name="fsync_notif_start_of_filling_content">ZIP file received, importing...</string>
+    <string name="fsync_notif_db_cleanup">Cleaning the database...</string>
+    <string name="fsync_notif_sync_complete_content">The database is up to date.</string>
+    <string name="fsync_notif_file_dowloaded_succesfully_title">Synchronized table</string>
+    <string name="fsync_notif_file_dowloaded_succesfully_content">imported successfully</string>
+    <string name="fsync_notif_sync_complete_title">Synchronization complete</string>
+    <string name="fsync_notif_star_data_sync">STAR data synchronization</string>
+    <string name="fsync_notif_file_imported_succesfully_content">imported successfully</string>
+    <string name="fsync_toast_error_ZIP_download">Error downloading ZIP file</string>
+    <string name="fsync_toast_error_file_empty">Error, empty file</string>
+    <string name="fsync_toast_error_unknown_error">Unknown error</string>
+    <string name="fsync_toast_error_JSON">JSON error</string>
+    <string name="fsync_toast_error_url_not_found_in_json">URL not found in JSON</string>
+    <string name="fsync_toast_error_gtfs_file_not_found">Error, no valid GTFS file found in the ZIP file</string>
+    <string name="fsync_notif_file_imported_succesfully_title">Imported table</string>
+</resources>

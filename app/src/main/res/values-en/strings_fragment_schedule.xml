@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="fschedule_title">Schedules</string>
+    <string name="fschedule_no_bus_found">No buses found</string>
+    <string name="fschedule_passages_at_a_standstill">Passages at a standstill</string>
+    <string name="fschedule_date_time">Date</string>
+</resources>

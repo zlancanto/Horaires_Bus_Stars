@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="fsel_title">Choix de ligne de bus</string>
+
+    <!-- Choix de la date -->
+    <string name="fsel_choose_date">Choisir une date</string>
+    <string name="fsel_choose_date_title">Date</string>
+
+    <!-- Choix de l'heure -->
+    <string name="fsel_choose_hour">Choisir une heure</string>
+    <string name="fsel_choose_hour_title">Heure</string>
+
+    <!-- Spinner -->
+    <string name="fsel_spinner_title">Ligne de bus :</string>
+    <string name="fsel_spinner_subtitle">Choisir une ligne...</string>
+
+    <!-- ListView -->
+    <string name="fsel_list_view">Directions disponibles :</string>
+</resources>

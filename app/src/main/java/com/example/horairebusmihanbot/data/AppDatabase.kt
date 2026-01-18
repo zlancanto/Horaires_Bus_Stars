@@ -1,47 +1,53 @@
 package com.example.horairebusmihanbot.data
 
-import android.content.Context
 import androidx.room.Database
-import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.example.horairebusmihanbot.data.dao.*
-import com.example.horairebusmihanbot.data.entity.*
+import androidx.room.Transaction
+import com.example.horairebusmihanbot.data.dao.BusRouteDao
+import com.example.horairebusmihanbot.data.dao.CalendarDao
+import com.example.horairebusmihanbot.data.dao.DatabaseDao
+import com.example.horairebusmihanbot.data.dao.DirectionDao
+import com.example.horairebusmihanbot.data.dao.StopDao
+import com.example.horairebusmihanbot.data.dao.StopTimeDao
+import com.example.horairebusmihanbot.data.dao.TripDao
+import com.example.horairebusmihanbot.data.entities.BusRoute
+import com.example.horairebusmihanbot.data.entities.Calendar
+import com.example.horairebusmihanbot.data.entities.Stop
+import com.example.horairebusmihanbot.data.entities.StopTime
+import com.example.horairebusmihanbot.data.entities.Trip
 
+/**
+ * Patron de conception : Singleton (géré via MainApp)
+ * Cette classe définit la configuration de la base de données Room.
+ */
 @Database(
     entities = [
         BusRoute::class,
-        Calendar::class,
-        Stop::class,
         Trip::class,
-        StopTime::class
+        Stop::class,
+        StopTime::class,
+        Calendar::class
     ],
     version = 1,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
-
-    // DAO exposés pour que les Repositories puissent les utiliser
-    abstract fun busRouteDao(): BusRouteDao
-    abstract fun calendarDao(): CalendarDao
+    abstract fun routeDao(): BusRouteDao
     abstract fun stopDao(): StopDao
     abstract fun tripDao(): TripDao
     abstract fun stopTimeDao(): StopTimeDao
+    abstract fun calendarDao(): CalendarDao
+    abstract fun directionDao(): DirectionDao
+    abstract fun databaseDao(): DatabaseDao
+    
 
-    companion object {
-        @Volatile
-        private var INSTANCE: AppDatabase? = null
-
-        fun getDatabase(context: Context): AppDatabase {
-            return INSTANCE ?: synchronized(this) {
-                val instance = Room.databaseBuilder(
-                    context.applicationContext,
-                    AppDatabase::class.java,
-                    "transport.db"
-                )
-                    .build()
-                INSTANCE = instance
-                instance
-            }
-        }
+    @Transaction
+    suspend fun clearAllData() {
+        // L'ordre de suppresion est très important !
+        stopTimeDao().deleteAllStopTimes()
+        tripDao().deleteAllTrips()
+        calendarDao().deleteAllCalendars()
+        stopDao().deleteAllStops()
+        routeDao().deleteAllRoutes()
     }
 }

@@ -66,7 +66,8 @@ class ScheduleFragment : Fragment(R.layout.fragment_schedule) {
             val selectedPassage = viewModel.stopTimes.value?.get(position)
             selectedPassage?.let {
                 val action = ScheduleFragmentDirections.toDetails(
-                    stopId = it.stop_id,// Il est plus propre de passer un ID unique
+                    tripId = it.trip_id,
+                    stopSequence = it.stop_sequence
                 )
                 findNavController().navigate(action)
             }

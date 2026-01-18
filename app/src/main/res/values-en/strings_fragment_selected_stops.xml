@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="fstops_sel_title">End of the selected route</string>
+    <string name="fstops_sel_direction">Directions</string>
+    <string name="fstops_sel_stops">Stops :</string>
 </resources>

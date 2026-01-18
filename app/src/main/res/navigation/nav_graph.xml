@@ -74,7 +74,10 @@
         android:name="com.example.horairebusmihanbot.ui.DetailsFragment"
         android:label="@string/fstops_sel_title">
         <argument
-            android:name="stopId"
+            android:name="tripId"
             app:argType="string" />
+        <argument
+            android:name="stopSequence"
+            app:argType="integer" />
     </fragment>
 </navigation>

@@ -9,6 +9,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.Transaction
+import com.example.horairebusmihanbot.dto.StopTimeWithLabelDto
 
 @Entity(tableName = "bus_route")
 data class BusRoute(
@@ -74,6 +75,17 @@ interface StarDao {
 
     @Query("SELECT DISTINCT trip_headsign, direction_id FROM trip WHERE route_id = :routeId")
     suspend fun getDirections(routeId: String): List<DirectionInfo>
+
+
+    @Query("""
+        SELECT st.departure_time, st.stop_id, s.stop_name, st.stop_sequence 
+        FROM stop_time st
+        INNER JOIN stop s ON st.stop_id = s.stop_id
+        WHERE st.trip_id = :tripId
+        AND st.stop_sequence >= :stopSequence
+        ORDER BY st.stop_sequence ASC
+    """)
+    suspend fun getTripDetails(tripId: String, stopSequence: Int): List<StopTimeWithLabelDto>
 
     @Query("""
         SELECT s.* FROM stop s 

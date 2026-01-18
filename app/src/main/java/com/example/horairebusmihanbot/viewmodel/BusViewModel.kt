@@ -10,6 +10,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.horairebusmihanbot.MainApp
+import com.example.horairebusmihanbot.dto.StopTimeWithLabelDto
 import com.example.horairebusmihanbot.model.*
 import com.example.horairebusmihanbot.utils.getDayOfWeekColumn
 import com.example.horairebusmihanbot.utils.isSameDay
@@ -36,6 +37,9 @@ class BusViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _stopTimes = MutableLiveData<List<StopTime>>()
     val stopTimes: LiveData<List<StopTime>> = _stopTimes
+
+    private val _tripDetails = MutableLiveData<List<StopTimeWithLabelDto>>()
+    val tripDetails: LiveData<List<StopTimeWithLabelDto>> = _tripDetails
 
     // Fonctions appelées par les fragments
 
@@ -87,6 +91,12 @@ class BusViewModel(application: Application) : AndroidViewModel(application) {
     fun loadStops(routeId: String, dirId: Int) {
         viewModelScope.launch {
             _stops.value = dao.getStops(routeId, dirId)
+        }
+    }
+
+    fun loadTripDetails(tripId: String, stopSequence: Int) {
+        viewModelScope.launch {
+            _tripDetails.value = dao.getTripDetails(tripId, stopSequence)
         }
     }
 
